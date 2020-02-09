@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
+import 'package:integrated_project/screens/map_search.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
 
 class MapPage extends StatelessWidget {
@@ -41,7 +42,9 @@ class MapBarContents extends StatelessWidget {
           icon: Icon(Icons.gps_fixed),
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            showSearch(context: context, delegate: MapSearchDelegate());
+          },
           icon: Icon(Icons.search),
         ),
       ],
