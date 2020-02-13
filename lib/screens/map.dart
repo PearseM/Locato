@@ -21,12 +21,15 @@ enum FabMode {
 class MapPageState extends State<MapPage> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // static callbacks for when new-pin and confirm-pin callbacks pressed
-  static VoidCallback newPinCallback;
-  static VoidCallback confirmPinCallback;
+  // static functions can be used in initialisers but need defining in initState
+  static Function(FabMode) changeFabMode;
+  static Function openBottomSheet;
+  static Function closeBottomSheet;
+
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
   static FloatingActionButtonLocation currentFabLocation;
+
   // controller for the bottom sheet so we know when it closes
   static PersistentBottomSheetController bottomSheetController;
 
@@ -34,57 +37,50 @@ class MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
 
-    // lets us reference non-static functions using setState from initialisers
-    newPinCallback = newPin;
-    confirmPinCallback = confirmPin;
+    changeFabMode = (value) {
+      setState(() {
+        switch (value) {
+          case FabMode.NewPin:
+            currentFabLocation = FloatingActionButtonLocation.centerDocked;
+            currentFab = fabNewPin;
+            break;
+          case FabMode.ConfirmPin:
+            currentFabLocation = FloatingActionButtonLocation.endDocked;
+            currentFab = fabConfirmPin;
+            break;
+        }
+      });
+    };
+
+    openBottomSheet = () {
+      bottomSheetController = scaffoldKey.currentState.showBottomSheet(
+        (context) => NewPinSheet(),
+      );
+      bottomSheetController.closed.then(changeFabMode(FabMode.NewPin));
+    };
+
+    closeBottomSheet = () {
+      bottomSheetController.close();
+    };
 
     // start in new-pin mode
     changeFabMode(FabMode.NewPin);
   }
 
-  void changeFabMode(FabMode value) {
-    setState(() {
-      switch (value) {
-        case FabMode.NewPin:
-          currentFabLocation = FloatingActionButtonLocation.centerDocked;
-          currentFab = fabNewPin;
-          break;
-        case FabMode.ConfirmPin:
-          currentFabLocation = FloatingActionButtonLocation.endDocked;
-          currentFab = fabConfirmPin;
-          break;
-      }
-    });
-  }
-
-  // called when new-pin FAB pressed
-  void newPin() {
-    changeFabMode(FabMode.ConfirmPin);
-
-    bottomSheetController = scaffoldKey.currentState.showBottomSheet((context) {
-      return NewPinSheet();
-    });
-
-    // re-enter new-pin mode when bottom sheet swiped down
-    bottomSheetController.closed.then((value) {
-      changeFabMode(FabMode.NewPin);
-    });
-  }
-
-  // called when confirm-pin FAB pressed
-  void confirmPin() {
-    bottomSheetController.close();
-    changeFabMode(FabMode.NewPin);
-  }
-
   static FloatingActionButton fabNewPin = FloatingActionButton(
+    onPressed: () {
+      openBottomSheet();
+      changeFabMode(FabMode.ConfirmPin);
+    },
     child: Icon(Icons.add_location),
-    onPressed: newPinCallback,
   );
 
   static FloatingActionButton fabConfirmPin = FloatingActionButton(
+    onPressed: () {
+      closeBottomSheet();
+      changeFabMode(FabMode.NewPin);
+    },
     child: Icon(Icons.check),
-    onPressed: confirmPinCallback,
   );
 
   @override
