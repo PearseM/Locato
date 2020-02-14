@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
@@ -18,7 +19,7 @@ enum FabMode {
   ConfirmPin,
 }
 
-class MapPageState extends State<MapPage> {
+class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   // static functions can be used in initialisers but need defining in initState
@@ -29,10 +30,9 @@ class MapPageState extends State<MapPage> {
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
 
-  static bool bottomSheetVisible;
-
-  // controller for the bottom sheet so we know when it closes
-  static PersistentBottomSheetController bottomSheetController;
+  // used to animate the bottom sheet popping up
+  AnimationController bottomSheetController;
+  bool bottomSheetVisible;
 
   @override
   void initState() {
@@ -52,15 +52,29 @@ class MapPageState extends State<MapPage> {
     };
 
     openBottomSheet = () {
-      bottomSheetVisible = true;
+      // make bottom sheet visible, animate it into view
+      setState(() {
+        bottomSheetVisible = true;
+      });
+      bottomSheetController.forward();
     };
 
     closeBottomSheet = () {
-      bottomSheetVisible = false;
+      // animate bottom sheet out of view and hide it
+      bottomSheetController.reverse().then((value) {
+        setState(() {
+          bottomSheetVisible = false;
+        });
+      });
     };
 
     // start in new-pin mode
     changeFabMode(FabMode.NewPin);
+
+    bottomSheetController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
     bottomSheetVisible = false;
   }
 
@@ -104,16 +118,27 @@ class MapPageState extends State<MapPage> {
           children: <Widget>[
             MapBarContents(),
             Visibility(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: keyboardPadding),
-                child: NewPinSheet(),
-              ),
+              // giving bottom sheet visibility hides keyboard when its closed
               visible: bottomSheetVisible,
+              child: SizeTransition(
+                sizeFactor: bottomSheetController,
+                axisAlignment: -1.0,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: keyboardPadding),
+                  child: NewPinSheet(),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    bottomSheetController.dispose();
+    super.dispose();
   }
 }
 
