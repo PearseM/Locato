@@ -10,14 +10,17 @@ class MapPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       //Adds a margin at the top on Android devices to avoid the status bar
-      top: (Theme.of(context).platform == TargetPlatform.android),
+      top: (Theme
+          .of(context)
+          .platform == TargetPlatform.android),
       bottom: false,
       child: Scaffold(
         body: MapBody(),
         drawer: MapDrawer(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: PinButton(),
-        resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
+        resizeToAvoidBottomInset: false,
+        // prevents map resizing with keyboard
         //extendBody: true, // puts map below the notched app bar
         // -- Removed this to prevent navbar from covering location button
         bottomNavigationBar: BottomAppBar(
@@ -72,25 +75,36 @@ class MapBodyState extends State<MapBody> {
   Map<PermissionGroup, PermissionStatus> _permissions;
 
   static final CameraPosition uobPosition =
-      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+  CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      resizeToAvoidBottomInset: false, // prevents map moving with keyboard
-      body: GoogleMap(
-        myLocationEnabled: true,
-        initialCameraPosition: uobPosition,
-        onMapCreated: (GoogleMapController controller) async {
+    return FutureBuilder<GoogleMap>(
+      future: _createMap(),
+      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
+        return Scaffold(
+          resizeToAvoidBottomInset: false,
+          // prevents map moving with keyboard
+          body: snapshot.data,
+        );
+      },);
+  }
+
+  Future<GoogleMap> _createMap() async {
+    Map<PermissionGroup, PermissionStatus> permissions =
+    await PermissionHandler()
+        .requestPermissions([PermissionGroup.locationWhenInUse]);
+    setState(() {
+      _permissions = permissions;
+    });
+    return GoogleMap(
+      myLocationEnabled: true,
+      initialCameraPosition: uobPosition,
+      onMapCreated: (GoogleMapController controller) async {
+        setState(() {
           _controller = controller;
-          Map<PermissionGroup, PermissionStatus> permissions =
-          await PermissionHandler()
-              .requestPermissions([PermissionGroup.locationWhenInUse]);
-          setState(() {
-            _permissions = permissions;
-          });
-        },
-      ),
+        });
+      },
     );
   }
 }
