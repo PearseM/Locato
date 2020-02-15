@@ -6,26 +6,22 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:integrated_project/screens/new_pin_sheet.dart';
-import 'package:integrated_project/screens/pin_info_drawer.dart';
+
+enum NewPinMode {
+  NewPin,
+  ConfirmPin,
+}
 
 class MapPage extends StatefulWidget {
   @override
   State<MapPage> createState() => MapPageState();
 }
 
-// FAB can be either the "new-pin" or "confirm-pin" button
-enum FabMode {
-  NewPin,
-  ConfirmPin,
-}
-
 class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   // static functions can be used in initialisers but need defining in initState
-  static Function(FabMode) changeFabMode;
-  static Function openBottomSheet;
-  static Function closeBottomSheet;
+  static Function(NewPinMode) changeNewPinMode;
 
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
@@ -38,38 +34,25 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    changeFabMode = (value) {
+    changeNewPinMode = (newPinMode) {
       setState(() {
-        switch (value) {
-          case FabMode.NewPin:
+        switch (newPinMode) {
+          case NewPinMode.NewPin:
+            bottomSheetController.reverse().then((value) {
+              bottomSheetVisible = false;
+            });
             currentFab = fabNewPin;
             break;
-          case FabMode.ConfirmPin:
+          case NewPinMode.ConfirmPin:
+            bottomSheetController.forward();
+            bottomSheetVisible = true;
             currentFab = fabConfirmPin;
             break;
         }
       });
     };
 
-    openBottomSheet = () {
-      // make bottom sheet visible, animate it into view
-      setState(() {
-        bottomSheetVisible = true;
-      });
-      bottomSheetController.forward();
-    };
-
-    closeBottomSheet = () {
-      // animate bottom sheet out of view and hide it
-      bottomSheetController.reverse().then((value) {
-        setState(() {
-          bottomSheetVisible = false;
-        });
-      });
-    };
-
-    // start in new-pin mode
-    changeFabMode(FabMode.NewPin);
+    currentFab = fabNewPin;
 
     bottomSheetController = AnimationController(
       vsync: this,
@@ -79,18 +62,12 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   }
 
   FloatingActionButton fabNewPin = FloatingActionButton(
-    onPressed: () {
-      openBottomSheet();
-      changeFabMode(FabMode.ConfirmPin);
-    },
+    onPressed: () => changeNewPinMode(NewPinMode.ConfirmPin),
     child: Icon(Icons.add_location),
   );
 
   FloatingActionButton fabConfirmPin = FloatingActionButton(
-    onPressed: () {
-      closeBottomSheet();
-      changeFabMode(FabMode.NewPin);
-    },
+    onPressed: () => changeNewPinMode(NewPinMode.NewPin),
     child: Icon(Icons.check),
     backgroundColor: Colors.green,
   );
@@ -171,14 +148,7 @@ class MapBarContents extends StatelessWidget {
   }
 }
 
-class MapBody extends StatefulWidget {
-  @override
-  State<MapBody> createState() => MapBodyState();
-}
-
-class MapBodyState extends State<MapBody> {
-  Completer<GoogleMapController> _controller = Completer();
-
+class MapBody extends StatelessWidget {
   static final CameraPosition uobPosition =
       CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
@@ -188,9 +158,7 @@ class MapBodyState extends State<MapBody> {
       resizeToAvoidBottomInset: false, // prevents map moving with keyboard
       body: GoogleMap(
         initialCameraPosition: uobPosition,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
+        onMapCreated: (GoogleMapController controller) {},
       ),
     );
   }
