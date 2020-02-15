@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapPage extends StatelessWidget {
   @override
@@ -15,7 +14,8 @@ class MapPage extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: PinButton(),
       resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
-      extendBody: true, // puts map below the notched app bar
+      //extendBody: true, // puts map below the notched app bar
+      // -- Removed this to prevent navbar from covering location button
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 4.0,
@@ -37,10 +37,13 @@ class MapBarContents extends StatelessWidget {
           icon: Icon(Icons.menu),
         ),
         Spacer(),
+        //This is no longer needed as the location button is part of the map
+        /*
         IconButton(
           onPressed: () {},
           icon: Icon(Icons.gps_fixed),
         ),
+         */
         IconButton(
           onPressed: () {
             showSearch(context: context, delegate: MapSearchDelegate());
@@ -60,7 +63,8 @@ class MapBody extends StatefulWidget {
 }
 
 class MapBodyState extends State<MapBody> {
-  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _controller;
+  Map<PermissionGroup, PermissionStatus> _permissions;
 
   static final CameraPosition uobPosition =
       CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
@@ -70,9 +74,16 @@ class MapBodyState extends State<MapBody> {
     return new Scaffold(
       resizeToAvoidBottomInset: false, // prevents map moving with keyboard
       body: GoogleMap(
+        myLocationEnabled: true,
         initialCameraPosition: uobPosition,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
+        onMapCreated: (GoogleMapController controller) async {
+          _controller = controller;
+          Map<PermissionGroup, PermissionStatus> permissions =
+          await PermissionHandler()
+              .requestPermissions([PermissionGroup.locationWhenInUse]);
+          setState(() {
+            _permissions = permissions;
+          });
         },
       ),
     );
