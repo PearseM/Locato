@@ -97,8 +97,12 @@ class MapBodyState extends State<MapBody> {
     setState(() {
       _permissions = permissions;
     });
+    bool locationGranted = ((await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse))
+        == PermissionStatus.granted);
     return GoogleMap(
-      myLocationEnabled: true,
+      myLocationEnabled: locationGranted,
+      myLocationButtonEnabled: locationGranted,
       initialCameraPosition: uobPosition,
       onMapCreated: (GoogleMapController controller) async {
         setState(() {
