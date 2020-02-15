@@ -8,18 +8,23 @@ import 'package:permission_handler/permission_handler.dart';
 class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: MapBody(),
-      drawer: MapDrawer(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: PinButton(),
-      resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
-      //extendBody: true, // puts map below the notched app bar
-      // -- Removed this to prevent navbar from covering location button
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 4.0,
-        child: MapBarContents(),
+    return SafeArea(
+      //Adds a margin at the top on Android devices to avoid the status bar
+      top: (Theme.of(context).platform == TargetPlatform.android),
+      bottom: false,
+      child: Scaffold(
+        body: MapBody(),
+        drawer: MapDrawer(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: PinButton(),
+        resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
+        //extendBody: true, // puts map below the notched app bar
+        // -- Removed this to prevent navbar from covering location button
+        bottomNavigationBar: BottomAppBar(
+          shape: CircularNotchedRectangle(),
+          notchMargin: 4.0,
+          child: MapBarContents(),
+        ),
       ),
     );
   }
