@@ -5,7 +5,7 @@ import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
-import 'package:integrated_project/screens/new_pin_sheet.dart';
+import 'package:integrated_project/screens/new_pin_form.dart';
 
 enum NewPinMode {
   NewPin,
@@ -19,6 +19,7 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  static GlobalKey<FormState> newPinFormKey = GlobalKey<FormState>();
 
   final GlobalKey babKey = GlobalKey();
   // how much the map is covered by the system status bar & BAB
@@ -100,8 +101,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
   FloatingActionButton fabConfirmPin = FloatingActionButton(
     onPressed: () {
-      addMarker(currentMapPosition);
-      changeNewPinMode(NewPinMode.NewPin);
+      if (newPinFormKey.currentState.validate()) {
+        addMarker(currentMapPosition);
+        changeNewPinMode(NewPinMode.NewPin);
+      }
     },
     child: Icon(Icons.check),
     backgroundColor: Colors.green,
@@ -163,7 +166,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                 axisAlignment: -1.0,
                 child: Padding(
                   padding: EdgeInsets.only(bottom: keyboardPadding),
-                  child: NewPinSheet(),
+                  child: NewPinForm(newPinFormKey),
                 ),
               ),
             ),

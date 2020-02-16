@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
-class NewPinSheet extends StatelessWidget {
+class NewPinForm extends StatelessWidget {
+  static GlobalKey _formKey;
+
+  NewPinForm(GlobalKey formKey) {
+    _formKey = formKey;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Form(
+        key: _formKey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
@@ -13,7 +20,7 @@ class NewPinSheet extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: "Name of pin",
                 border: UnderlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
+                contentPadding: EdgeInsets.all(10.0),
               ),
               validator: (value) =>
                   value.isEmpty ? 'Pin must have a name' : null,
@@ -28,7 +35,8 @@ class NewPinSheet extends StatelessWidget {
               validator: (value) =>
                   value.isEmpty ? "Pin must have description" : null,
               maxLines: 5,
-            )
+            ),
+            SizedBox(height: 15),
           ],
         ),
       ),
