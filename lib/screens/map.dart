@@ -10,9 +10,7 @@ class MapPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       //Adds a margin at the top on Android devices to avoid the status bar
-      top: (Theme
-          .of(context)
-          .platform == TargetPlatform.android),
+      top: (Theme.of(context).platform == TargetPlatform.android),
       bottom: false,
       child: Scaffold(
         body: MapBody(),
@@ -75,7 +73,7 @@ class MapBodyState extends State<MapBody> {
   Map<PermissionGroup, PermissionStatus> _permissions;
 
   static final CameraPosition uobPosition =
-  CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
@@ -87,19 +85,25 @@ class MapBodyState extends State<MapBody> {
           // prevents map moving with keyboard
           body: snapshot.data,
         );
-      },);
+      },
+    );
   }
 
   Future<GoogleMap> _createMap() async {
-    Map<PermissionGroup, PermissionStatus> permissions =
-    await PermissionHandler()
-        .requestPermissions([PermissionGroup.locationWhenInUse]);
+    Map<PermissionGroup, PermissionStatus> permissions;
+    PermissionStatus locationPermissionStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
+    if (locationPermissionStatus != PermissionStatus.disabled &&
+        locationPermissionStatus != PermissionStatus.neverAskAgain) {
+      permissions = await PermissionHandler()
+          .requestPermissions([PermissionGroup.locationWhenInUse]);
+    }
     setState(() {
       _permissions = permissions;
     });
     bool locationGranted = ((await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.locationWhenInUse))
-        == PermissionStatus.granted);
+            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+        PermissionStatus.granted);
     return GoogleMap(
       myLocationEnabled: locationGranted,
       myLocationButtonEnabled: locationGranted,
