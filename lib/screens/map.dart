@@ -22,6 +22,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
   // static functions can be used in initialisers but need defining in initState
   static Function(NewPinMode) changeNewPinMode;
+  static Function(CameraPosition) addMarker;
 
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
@@ -29,6 +30,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   // used to animate the bottom sheet popping up
   AnimationController bottomSheetController;
   bool bottomSheetVisible;
+
+  static CameraPosition currentMapPosition;
+  static Set<Marker> markers;
 
   @override
   void initState() {
@@ -53,6 +57,15 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       }
     };
 
+    addMarker = (CameraPosition cameraPosition) {
+      setState(() {
+        markers.add(Marker(
+          markerId: MarkerId(markers.length.toString()),
+          position: cameraPosition.target,
+        ));
+      });
+    };
+
     currentFab = fabNewPin;
 
     bottomSheetController = AnimationController(
@@ -63,6 +76,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
     final CameraPosition uobPosition =
         CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+    currentMapPosition = uobPosition;
+    markers = Set<Marker>();
   }
 
   FloatingActionButton fabNewPin = FloatingActionButton(
@@ -71,7 +86,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   );
 
   FloatingActionButton fabConfirmPin = FloatingActionButton(
-    onPressed: () => changeNewPinMode(NewPinMode.NewPin),
+    onPressed: () {
+      addMarker(currentMapPosition);
+      changeNewPinMode(NewPinMode.NewPin);
+    },
     child: Icon(Icons.check),
     backgroundColor: Colors.green,
   );
@@ -85,7 +103,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       key: scaffoldKey,
       body: Stack(children: [
         GoogleMap(
+          onCameraMove: (value) => currentMapPosition = value,
           initialCameraPosition: currentMapPosition,
+          markers: markers,
         ),
         // the new-pin indicator in the middle of the map
         Align(
