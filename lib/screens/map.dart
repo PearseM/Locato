@@ -20,6 +20,10 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  final GlobalKey babKey = GlobalKey();
+  // how much the map is covered by the system status bar & BAB
+  static EdgeInsets mapOverlap = EdgeInsets.zero;
+
   // static functions can be used in initialisers but need defining in initState
   static Function(NewPinMode) changeNewPinMode;
   static Function(CameraPosition) addMarker;
@@ -32,11 +36,20 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   bool bottomSheetVisible;
 
   static CameraPosition currentMapPosition;
+  static ScreenCoordinate currentScreenPosition;
   static Set<Marker> markers;
 
   @override
   void initState() {
     super.initState();
+
+    // once the BAB renders for the first time, calculate the mapOverlap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        mapOverlap = MediaQuery.of(context).padding +
+            EdgeInsets.only(bottom: babKey.currentContext.size.height);
+      });
+    });
 
     changeNewPinMode = (newPinMode) async {
       switch (newPinMode) {
@@ -103,6 +116,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       key: scaffoldKey,
       body: Stack(children: [
         GoogleMap(
+          padding: mapOverlap,
           onCameraMove: (value) => currentMapPosition = value,
           initialCameraPosition: currentMapPosition,
           markers: markers,
@@ -111,12 +125,16 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         Align(
           child: ScaleTransition(
             scale: bottomSheetController, // show pin with bottom sheet
-            child: FractionalTranslation(
-              translation: Offset(0.0, -0.5), // aligns pin point to centre
-              child: Icon(
-                Icons.location_on,
-                size: 48.0,
-                color: Theme.of(context).primaryColor,
+            child: Transform.translate(
+              // corrects mapOverlap pin-movement
+              offset: Offset(0.0, mapOverlap.top - mapOverlap.bottom) / 2,
+              child: FractionalTranslation(
+                translation: Offset(0.0, -0.5), // aligns pin point to centre
+                child: Icon(
+                  Icons.location_on,
+                  size: 48.0,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
             ),
           ),
@@ -128,6 +146,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
       extendBody: true, // puts map beneath the notched app bar
       bottomNavigationBar: BottomAppBar(
+        key: babKey,
         shape: CircularNotchedRectangle(),
         notchMargin: 4.0,
         // BottomAppBar has actual appbar with toggled-visibility new-pin sheet under
