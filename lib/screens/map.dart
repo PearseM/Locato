@@ -34,22 +34,23 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    changeNewPinMode = (newPinMode) {
-      setState(() {
-        switch (newPinMode) {
-          case NewPinMode.NewPin:
-            bottomSheetController.reverse().then((value) {
-              bottomSheetVisible = false;
-            });
+    changeNewPinMode = (newPinMode) async {
+      switch (newPinMode) {
+        case NewPinMode.NewPin:
+          await bottomSheetController.reverse();
+          setState(() {
+            bottomSheetVisible = false;
             currentFab = fabNewPin;
-            break;
-          case NewPinMode.ConfirmPin:
+          });
+          break;
+        case NewPinMode.ConfirmPin:
+          setState(() {
             bottomSheetController.forward();
             bottomSheetVisible = true;
             currentFab = fabConfirmPin;
-            break;
-        }
-      });
+          });
+          break;
+      }
     };
 
     currentFab = fabNewPin;
@@ -59,6 +60,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 150),
     );
     bottomSheetVisible = false;
+
+    final CameraPosition uobPosition =
+        CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
   }
 
   FloatingActionButton fabNewPin = FloatingActionButton(
@@ -79,7 +83,25 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
     return Scaffold(
       key: scaffoldKey,
-      body: MapBody(),
+      body: Stack(children: [
+        GoogleMap(
+          initialCameraPosition: currentMapPosition,
+        ),
+        // the new-pin indicator in the middle of the map
+        Align(
+          child: ScaleTransition(
+            scale: bottomSheetController, // show pin with bottom sheet
+            child: FractionalTranslation(
+              translation: Offset(0.0, -0.5), // aligns pin point to centre
+              child: Icon(
+                Icons.location_on,
+                size: 48.0,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ]),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: currentFab,
@@ -144,22 +166,6 @@ class MapBarContents extends StatelessWidget {
       ],
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-}
-
-class MapBody extends StatelessWidget {
-  static final CameraPosition uobPosition =
-      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
-
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-      resizeToAvoidBottomInset: false, // prevents map moving with keyboard
-      body: GoogleMap(
-        initialCameraPosition: uobPosition,
-        onMapCreated: (GoogleMapController controller) {},
-      ),
     );
   }
 }
