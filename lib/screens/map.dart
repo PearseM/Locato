@@ -1,25 +1,31 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: MapBody(),
-      drawer: MapDrawer(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: PinButton(),
-      resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
-      extendBody: true, // puts map below the notched app bar
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 4.0,
-        child: MapBarContents(),
+    return SafeArea(
+      //Adds a margin at the top on Android devices to avoid the status bar
+      top: (Theme.of(context).platform == TargetPlatform.android),
+      bottom: false,
+      child: Scaffold(
+        body: MapBody(),
+        drawer: MapDrawer(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: PinButton(),
+        resizeToAvoidBottomInset: false,
+        // prevents map resizing with keyboard
+        //extendBody: true, // puts map below the notched app bar
+        // -- Removed this to prevent navbar from covering location button
+        bottomNavigationBar: BottomAppBar(
+          shape: CircularNotchedRectangle(),
+          notchMargin: 4.0,
+          child: MapBarContents(),
+        ),
       ),
     );
   }
@@ -37,10 +43,13 @@ class MapBarContents extends StatelessWidget {
           icon: Icon(Icons.menu),
         ),
         Spacer(),
+        //This is no longer needed as the location button is part of the map
+        /*
         IconButton(
           onPressed: () {},
           icon: Icon(Icons.gps_fixed),
         ),
+         */
         IconButton(
           onPressed: () {
             showSearch(context: context, delegate: MapSearchDelegate());
@@ -60,21 +69,50 @@ class MapBody extends StatefulWidget {
 }
 
 class MapBodyState extends State<MapBody> {
-  Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _controller;
+  Map<PermissionGroup, PermissionStatus> _permissions;
 
   static final CameraPosition uobPosition =
       CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      resizeToAvoidBottomInset: false, // prevents map moving with keyboard
-      body: GoogleMap(
-        initialCameraPosition: uobPosition,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+    return FutureBuilder<GoogleMap>(
+      future: _createMap(),
+      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
+        return Scaffold(
+          resizeToAvoidBottomInset: false,
+          // prevents map moving with keyboard
+          body: snapshot.data,
+        );
+      },
+    );
+  }
+
+  Future<GoogleMap> _createMap() async {
+    Map<PermissionGroup, PermissionStatus> permissions;
+    PermissionStatus locationPermissionStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
+    if (locationPermissionStatus != PermissionStatus.disabled &&
+        locationPermissionStatus != PermissionStatus.neverAskAgain) {
+      permissions = await PermissionHandler()
+          .requestPermissions([PermissionGroup.locationWhenInUse]);
+    }
+    setState(() {
+      _permissions = permissions;
+    });
+    bool locationGranted = ((await PermissionHandler()
+            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+        PermissionStatus.granted);
+    return GoogleMap(
+      myLocationEnabled: locationGranted,
+      myLocationButtonEnabled: locationGranted,
+      initialCameraPosition: uobPosition,
+      onMapCreated: (GoogleMapController controller) async {
+        setState(() {
+          _controller = controller;
+        });
+      },
     );
   }
 }
