@@ -28,7 +28,6 @@ class MapPageState extends State<MapPage> {
 
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
-  static FloatingActionButtonLocation currentFabLocation;
 
   // controller for the bottom sheet so we know when it closes
   static PersistentBottomSheetController bottomSheetController;
@@ -41,11 +40,9 @@ class MapPageState extends State<MapPage> {
       setState(() {
         switch (value) {
           case FabMode.NewPin:
-            currentFabLocation = FloatingActionButtonLocation.centerDocked;
             currentFab = fabNewPin;
             break;
           case FabMode.ConfirmPin:
-            currentFabLocation = FloatingActionButtonLocation.endDocked;
             currentFab = fabConfirmPin;
             break;
         }
@@ -67,7 +64,7 @@ class MapPageState extends State<MapPage> {
     changeFabMode(FabMode.NewPin);
   }
 
-  static FloatingActionButton fabNewPin = FloatingActionButton(
+  FloatingActionButton fabNewPin = FloatingActionButton(
     onPressed: () {
       openBottomSheet();
       changeFabMode(FabMode.ConfirmPin);
@@ -75,12 +72,13 @@ class MapPageState extends State<MapPage> {
     child: Icon(Icons.add_location),
   );
 
-  static FloatingActionButton fabConfirmPin = FloatingActionButton(
+  FloatingActionButton fabConfirmPin = FloatingActionButton(
     onPressed: () {
       closeBottomSheet();
       changeFabMode(FabMode.NewPin);
     },
     child: Icon(Icons.check),
+    backgroundColor: Colors.green,
   );
 
   @override
@@ -89,10 +87,10 @@ class MapPageState extends State<MapPage> {
       key: scaffoldKey,
       body: MapBody(),
       drawer: MapDrawer(),
-      floatingActionButtonLocation: currentFabLocation,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: currentFab,
       resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
-      extendBody: true, // puts map below the notched app bar
+      extendBody: true, // puts map beneath the notched app bar
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 4.0,
