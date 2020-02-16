@@ -29,6 +29,8 @@ class MapPageState extends State<MapPage> {
   // currently shown FAB and its location
   static FloatingActionButton currentFab;
 
+  static bool bottomSheetVisible;
+
   // controller for the bottom sheet so we know when it closes
   static PersistentBottomSheetController bottomSheetController;
 
@@ -50,18 +52,16 @@ class MapPageState extends State<MapPage> {
     };
 
     openBottomSheet = () {
-      bottomSheetController = scaffoldKey.currentState.showBottomSheet(
-        (context) => NewPinSheet(),
-      );
-      bottomSheetController.closed.then(changeFabMode(FabMode.NewPin));
+      bottomSheetVisible = true;
     };
 
     closeBottomSheet = () {
-      bottomSheetController.close();
+      bottomSheetVisible = false;
     };
 
     // start in new-pin mode
     changeFabMode(FabMode.NewPin);
+    bottomSheetVisible = false;
   }
 
   FloatingActionButton fabNewPin = FloatingActionButton(
@@ -83,6 +83,9 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    // used to prevent keyboard overlapping textboxes
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+
     return Scaffold(
       key: scaffoldKey,
       body: MapBody(),
@@ -94,7 +97,21 @@ class MapPageState extends State<MapPage> {
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         notchMargin: 4.0,
-        child: MapBarContents(),
+        // BottomAppBar has actual appbar with toggled-visibility new-pin sheet under
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            MapBarContents(),
+            Visibility(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: keyboardPadding),
+                child: NewPinSheet(),
+              ),
+              visible: bottomSheetVisible,
+            ),
+          ],
+        ),
       ),
     );
   }
