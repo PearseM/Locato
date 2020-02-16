@@ -157,7 +157,34 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            MapBarContents(),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Visibility(
+                  visible: !bottomSheetVisible,
+                  child: IconButton(
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                    icon: Icon(Icons.menu),
+                  ),
+                  replacement: IconButton(
+                    onPressed: () {
+                      changeNewPinMode(NewPinMode.NewPin);
+                    },
+                    icon: Icon(Icons.arrow_back),
+                  ),
+                ),
+                Spacer(),
+                IconButton(
+                  onPressed: () {
+                    showSearch(context: context, delegate: MapSearchDelegate());
+                  },
+                  icon: Icon(Icons.search),
+                ),
+              ],
+            ),
             Visibility(
               // giving bottom sheet visibility hides keyboard when its closed
               visible: bottomSheetVisible,
@@ -180,34 +207,5 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void dispose() {
     bottomSheetController.dispose();
     super.dispose();
-  }
-}
-
-class MapBarContents extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        IconButton(
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
-          icon: Icon(Icons.menu),
-        ),
-        Spacer(),
-        IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.gps_fixed),
-        ),
-        IconButton(
-          onPressed: () {
-            showSearch(context: context, delegate: MapSearchDelegate());
-          },
-          icon: Icon(Icons.search),
-        ),
-      ],
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
   }
 }
