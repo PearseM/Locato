@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,205 +5,267 @@ import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
 
-enum NewPinMode {
-  NewPin,
-  ConfirmPin,
-}
-
 class MapPage extends StatefulWidget {
   @override
   State<MapPage> createState() => MapPageState();
 }
 
 class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-  static GlobalKey<FormState> newPinFormKey = GlobalKey<FormState>();
+  // used to animate the change between new-pin states
+  AnimationController drawerAnimator;
+  bool showDrawer;
 
-  final GlobalKey babKey = GlobalKey();
   // how much the map is covered by the system status bar & BAB
-  static EdgeInsets mapOverlap = EdgeInsets.zero;
+  EdgeInsets mapOverlap;
+  Set<Marker> markers;
+  CameraPosition currentMapPosition;
 
-  // static functions can be used in initialisers but need defining in initState
-  static Function(NewPinMode) changeNewPinMode;
-  static Function(CameraPosition) addMarker;
+  GlobalKey<FormState> formKey;
 
   // currently shown FAB and its location
-  static FloatingActionButton currentFab;
+  FloatingActionButton fabAddPin;
+  FloatingActionButton fabConfirmPin;
+  FloatingActionButton currentFab;
 
-  // used to animate the bottom sheet popping up
-  AnimationController bottomSheetController;
-  bool bottomSheetVisible;
+  void openDrawer() {
+    setState(() {
+      drawerAnimator.forward();
+      showDrawer = true;
+      currentFab = fabConfirmPin;
+    });
+  }
 
-  static CameraPosition currentMapPosition;
-  static ScreenCoordinate currentScreenPosition;
-  static Set<Marker> markers;
+  void closeDrawer() async {
+    await drawerAnimator.reverse();
+    setState(() {
+      showDrawer = false;
+      currentFab = fabAddPin;
+    });
+  }
+
+  void addMarker(CameraPosition position) {
+    markers.add(Marker(
+      markerId: MarkerId(markers.length.toString()),
+      position: position.target,
+    ));
+  }
+
+  void barHeightChange(double height) {
+    setState(() {
+      mapOverlap =
+          MediaQuery.of(context).padding + EdgeInsets.only(bottom: height);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
 
-    // once the BAB renders for the first time, calculate the mapOverlap
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        mapOverlap = MediaQuery.of(context).padding +
-            EdgeInsets.only(bottom: babKey.currentContext.size.height);
-      });
-    });
-
-    changeNewPinMode = (newPinMode) async {
-      switch (newPinMode) {
-        case NewPinMode.NewPin:
-          await bottomSheetController.reverse();
-          setState(() {
-            bottomSheetVisible = false;
-            currentFab = fabNewPin;
-          });
-          break;
-        case NewPinMode.ConfirmPin:
-          setState(() {
-            bottomSheetController.forward();
-            bottomSheetVisible = true;
-            currentFab = fabConfirmPin;
-          });
-          break;
-      }
-    };
-
-    addMarker = (CameraPosition cameraPosition) {
-      setState(() {
-        markers.add(Marker(
-          markerId: MarkerId(markers.length.toString()),
-          position: cameraPosition.target,
-        ));
-      });
-    };
-
-    currentFab = fabNewPin;
-
-    bottomSheetController = AnimationController(
+    drawerAnimator = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: Duration(milliseconds: 150),
     );
-    bottomSheetVisible = false;
+    showDrawer = false;
 
-    final CameraPosition uobPosition =
-        CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
-    currentMapPosition = uobPosition;
+    mapOverlap = EdgeInsets.zero;
     markers = Set<Marker>();
+    currentMapPosition =
+        CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+
+    formKey = GlobalKey<FormState>();
+
+    fabAddPin = FloatingActionButton(
+      onPressed: openDrawer,
+      child: Icon(Icons.add_location),
+    );
+
+    fabConfirmPin = FloatingActionButton(
+      onPressed: () {
+        if (formKey.currentState.validate()) {
+          addMarker(currentMapPosition);
+          closeDrawer();
+        }
+      },
+      child: Icon(Icons.check),
+      backgroundColor: Colors.green,
+    );
+
+    currentFab = fabAddPin;
   }
-
-  FloatingActionButton fabNewPin = FloatingActionButton(
-    onPressed: () => changeNewPinMode(NewPinMode.ConfirmPin),
-    child: Icon(Icons.add_location),
-  );
-
-  FloatingActionButton fabConfirmPin = FloatingActionButton(
-    onPressed: () {
-      if (newPinFormKey.currentState.validate()) {
-        addMarker(currentMapPosition);
-        changeNewPinMode(NewPinMode.NewPin);
-      }
-    },
-    child: Icon(Icons.check),
-    backgroundColor: Colors.green,
-  );
 
   @override
   Widget build(BuildContext context) {
-    // used to prevent keyboard overlapping textboxes
-    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
-
     return Scaffold(
-      key: scaffoldKey,
-      body: Stack(children: [
-        GoogleMap(
-          padding: mapOverlap,
-          onCameraMove: (value) => currentMapPosition = value,
-          initialCameraPosition: currentMapPosition,
-          markers: markers,
-        ),
-        // the new-pin indicator in the middle of the map
-        Align(
-          child: ScaleTransition(
-            scale: bottomSheetController, // show pin with bottom sheet
-            child: Transform.translate(
-              // corrects mapOverlap pin-movement
-              offset: Offset(0.0, mapOverlap.top - mapOverlap.bottom) / 2,
-              child: FractionalTranslation(
-                translation: Offset(0.0, -0.5), // aligns pin point to centre
-                child: Icon(
-                  Icons.location_on,
-                  size: 48.0,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ]),
+      body: MapBody(
+        (value) => currentMapPosition = value,
+        currentMapPosition,
+        mapOverlap,
+        markers,
+        drawerAnimator,
+      ),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: currentFab,
       resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
       extendBody: true, // puts map beneath the notched app bar
-      bottomNavigationBar: BottomAppBar(
-        key: babKey,
-        shape: CircularNotchedRectangle(),
-        notchMargin: 4.0,
-        // BottomAppBar has actual appbar with toggled-visibility new-pin sheet under
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Visibility(
-                  visible: !bottomSheetVisible,
-                  child: IconButton(
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                    icon: Icon(Icons.menu),
-                  ),
-                  replacement: IconButton(
-                    onPressed: () {
-                      changeNewPinMode(NewPinMode.NewPin);
-                    },
-                    icon: Icon(Icons.arrow_back),
-                  ),
-                ),
-                Spacer(),
-                IconButton(
-                  onPressed: () {
-                    showSearch(context: context, delegate: MapSearchDelegate());
-                  },
-                  icon: Icon(Icons.search),
-                ),
-              ],
-            ),
-            Visibility(
-              // giving bottom sheet visibility hides keyboard when its closed
-              visible: bottomSheetVisible,
-              child: SizeTransition(
-                sizeFactor: bottomSheetController,
-                axisAlignment: -1.0,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: keyboardPadding),
-                  child: NewPinForm(newPinFormKey),
-                ),
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomBar(
+        formKey,
+        closeDrawer,
+        mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
+        drawerAnimator,
+        showDrawer,
       ),
     );
   }
 
   @override
   void dispose() {
-    bottomSheetController.dispose();
+    drawerAnimator.dispose();
     super.dispose();
+  }
+}
+
+class MapBody extends StatelessWidget {
+  final Function(CameraPosition) mapMoveCallback;
+  final CameraPosition initialPosition;
+  final EdgeInsets mapOverlap;
+
+  final Set<Marker> markers;
+
+  final Animation<double> pinAnimation;
+
+  MapBody(
+    this.mapMoveCallback,
+    this.initialPosition,
+    this.mapOverlap,
+    this.markers,
+    this.pinAnimation,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: [
+      GoogleMap(
+        padding: mapOverlap,
+        onCameraMove: mapMoveCallback,
+        initialCameraPosition: initialPosition,
+        markers: markers,
+      ),
+      // the new-pin indicator in the middle of the map
+      Align(
+        child: ScaleTransition(
+          scale: pinAnimation, // scale the pin with this animation
+          child: Transform.translate(
+            // corrects the offset caused by the mapOverlap
+            offset: Offset(0.0, mapOverlap.top - mapOverlap.bottom) / 2,
+            child: FractionalTranslation(
+              translation: Offset(0.0, -0.5), // aligns pin point to centre
+              child: Icon(
+                Icons.location_on,
+                size: 48.0,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class BottomBar extends StatelessWidget {
+  final GlobalKey<FormState> formKey;
+  final VoidCallback closeBarCallback;
+
+  final Function(double) barHeightCallback;
+  final Animation<double> openAnimation;
+  final bool drawerOpen;
+
+  BottomBar(
+    this.formKey,
+    this.closeBarCallback,
+    this.barHeightCallback,
+    this.openAnimation,
+    this.drawerOpen,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      barHeightCallback(context.size.height);
+    });
+
+    // used to prevent keyboard overlapping textboxes
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return BottomAppBar(
+      shape: CircularNotchedRectangle(),
+      notchMargin: 4.0,
+      // BottomAppBar has actual appbar with toggled-visibility new-pin sheet under
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          BottomBarNav(
+            closeBarCallback,
+            drawerOpen,
+          ),
+          Visibility(
+            // giving bottom sheet visibility hides keyboard when its closed
+            visible: drawerOpen,
+            child: SizeTransition(
+              sizeFactor: openAnimation,
+              axisAlignment: -1.0,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: keyboardPadding),
+                child: NewPinForm(formKey),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class BottomBarNav extends StatelessWidget {
+  final VoidCallback closeBarCallback;
+  final bool drawerOpen;
+
+  BottomBarNav(
+    this.closeBarCallback,
+    this.drawerOpen,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Visibility(
+          visible: !drawerOpen,
+          child: IconButton(
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            icon: Icon(Icons.menu),
+          ),
+          replacement: IconButton(
+            onPressed: () {
+              closeBarCallback();
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
+        ),
+        Spacer(),
+        IconButton(
+          onPressed: () {
+            showSearch(context: context, delegate: MapSearchDelegate());
+          },
+          icon: Icon(Icons.search),
+        ),
+      ],
+    );
   }
 }
