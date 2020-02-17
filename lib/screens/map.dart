@@ -3,7 +3,6 @@ import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
-import 'package:integrated_project/screens/pin_info_drawer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
 
@@ -99,17 +98,19 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       body: MapBody(
-        (value) => currentMapPosition = value,
-        currentMapPosition,
-        mapOverlap,
-        markers,
-        drawerAnimator,
+        mapMoveCallback: (value) => currentMapPosition = value,
+        initialPosition: currentMapPosition,
+        mapOverlap: mapOverlap,
+        markers: markers,
+        pinAnimation: drawerAnimator,
       ),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: currentFab,
-      resizeToAvoidBottomInset: false, // prevents map resizing with keyboard
-      extendBody: true, // puts map beneath the notched app bar
+      resizeToAvoidBottomInset: false,
+      // prevents map resizing with keyboard
+      extendBody: true,
+      // puts map beneath the notched app bar
       bottomNavigationBar: BottomBar(
         formKey,
         closeDrawer,
@@ -127,7 +128,16 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   }
 }
 
-class MapBody extends StatelessWidget {
+class MapBody extends StatefulWidget {
+  MapBody({
+    Key key,
+    this.mapMoveCallback,
+    this.initialPosition,
+    this.mapOverlap,
+    this.markers,
+    this.pinAnimation,
+  }) : super(key: key);
+
   final Function(CameraPosition) mapMoveCallback;
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
@@ -136,30 +146,31 @@ class MapBody extends StatelessWidget {
 
   final Animation<double> pinAnimation;
 
-  MapBody(
-    this.mapMoveCallback,
-    this.initialPosition,
-    this.mapOverlap,
-    this.markers,
-    this.pinAnimation,
-  );
+  @override
+  State<MapBody> createState() => MapBodyState();
+}
+//NEW
+class MapBodyState extends State<MapBody> {
+  //Map<PermissionGroup, PermissionStatus> _permissions;
+  static const CameraPosition uobPosition =
+  CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
+    /*return Stack(children: [
       GoogleMap(
-        padding: mapOverlap,
-        onCameraMove: mapMoveCallback,
-        initialCameraPosition: initialPosition,
-        markers: markers,
+        padding: widget.mapOverlap,
+        onCameraMove: widget.mapMoveCallback,
+        initialCameraPosition: widget.initialPosition,
+        markers: widget.markers,
       ),
       // the new-pin indicator in the middle of the map
       Align(
         child: ScaleTransition(
-          scale: pinAnimation, // scale the pin with this animation
+          scale: widget.pinAnimation, // scale the pin with this animation
           child: Transform.translate(
             // corrects the offset caused by the mapOverlap
-            offset: Offset(0.0, mapOverlap.top - mapOverlap.bottom) / 2,
+            offset: Offset(0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
             child: FractionalTranslation(
               translation: Offset(0.0, -0.5), // aligns pin point to centre
               child: Icon(
@@ -172,8 +183,118 @@ class MapBody extends StatelessWidget {
         ),
       ),
     ]);
+     */
+    return FutureBuilder<GoogleMap>(
+      future: _createMap(),
+      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
+        return
+          Stack(children: [
+            Container(child: snapshot.data),/*
+            GoogleMap(
+              padding: widget.mapOverlap,
+              onCameraMove: widget.mapMoveCallback,
+              initialCameraPosition: widget.initialPosition,
+              markers: widget.markers,
+            ),*/
+            // the new-pin indicator in the middle of the map
+            Align(
+              child: ScaleTransition(
+                scale: widget.pinAnimation, // scale the pin with this animation
+                child: Transform.translate(
+                  // corrects the offset caused by the mapOverlap
+                  offset: Offset(0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
+                  child: FractionalTranslation(
+                    translation: Offset(0.0, -0.5), // aligns pin point to centre
+                    child: Icon(
+                      Icons.location_on,
+                      size: 48.0,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ]
+        );
+      },
+    );
+  }
+
+  Future<GoogleMap> _createMap() async {
+    //Map<PermissionGroup, PermissionStatus> permissions;
+    PermissionStatus locationPermissionStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
+    if (locationPermissionStatus != PermissionStatus.disabled &&
+        locationPermissionStatus != PermissionStatus.neverAskAgain) {
+      await PermissionHandler()
+          .requestPermissions([PermissionGroup.locationWhenInUse]);
+    }/*
+    setState(() {
+      _permissions = permissions;
+    });*/
+    bool locationGranted = ((await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+        PermissionStatus.granted);
+    return GoogleMap(
+      padding: widget.mapOverlap,
+      onCameraMove: widget.mapMoveCallback,
+      initialCameraPosition: widget.initialPosition,
+      markers: widget.markers,
+      myLocationEnabled: locationGranted,
+      myLocationButtonEnabled: locationGranted,
+    );
   }
 }
+
+
+/*
+//OLD
+class MapBodyState extends State<MapBody> {
+  Map<PermissionGroup, PermissionStatus> _permissions;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<GoogleMap>(
+      future: _createMap(),
+      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
+        return Scaffold(
+          resizeToAvoidBottomInset: false,
+          // prevents map moving with keyboard
+          body: snapshot.data,
+        );
+      },
+    );
+  }
+
+  Future<GoogleMap> _createMap() async {
+    Map<PermissionGroup, PermissionStatus> permissions;
+    PermissionStatus locationPermissionStatus = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
+    if (locationPermissionStatus != PermissionStatus.disabled &&
+        locationPermissionStatus != PermissionStatus.neverAskAgain) {
+      permissions = await PermissionHandler()
+          .requestPermissions([PermissionGroup.locationWhenInUse]);
+    }
+    setState(() {
+      _permissions = permissions;
+    });
+    bool locationGranted = ((await PermissionHandler()
+            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+        PermissionStatus.granted);
+    return GoogleMap(
+      myLocationEnabled: locationGranted,
+      myLocationButtonEnabled: locationGranted,
+      initialCameraPosition: uobPosition,
+      onMapCreated: (GoogleMapController controller) async {
+        setState(() {
+          _controller = controller;
+        });
+      },
+    );
+  }
+}
+
+ */
 
 class BottomBar extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -275,77 +396,6 @@ class BottomBarNav extends StatelessWidget {
           icon: Icon(Icons.search),
         ),
       ],
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    );
-  }
-}
-
-class MapBody extends StatefulWidget {
-  @override
-  State<MapBody> createState() => MapBodyState();
-}
-
-class MapBodyState extends State<MapBody> {
-  GoogleMapController _controller;
-  Map<PermissionGroup, PermissionStatus> _permissions;
-
-  static final CameraPosition uobPosition =
-      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<GoogleMap>(
-      future: _createMap(),
-      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
-        return Scaffold(
-          resizeToAvoidBottomInset: false,
-          // prevents map moving with keyboard
-          body: snapshot.data,
-        );
-      },
-    );
-  }
-
-  Future<GoogleMap> _createMap() async {
-    Map<PermissionGroup, PermissionStatus> permissions;
-    PermissionStatus locationPermissionStatus = await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
-    if (locationPermissionStatus != PermissionStatus.disabled &&
-        locationPermissionStatus != PermissionStatus.neverAskAgain) {
-      permissions = await PermissionHandler()
-          .requestPermissions([PermissionGroup.locationWhenInUse]);
-    }
-    setState(() {
-      _permissions = permissions;
-    });
-    bool locationGranted = ((await PermissionHandler()
-            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
-        PermissionStatus.granted);
-    return GoogleMap(
-      myLocationEnabled: locationGranted,
-      myLocationButtonEnabled: locationGranted,
-      initialCameraPosition: uobPosition,
-      onMapCreated: (GoogleMapController controller) async {
-        setState(() {
-          _controller = controller;
-        });
-      },
-    );
-  }
-}
-
-class PinButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      child: Icon(Icons.add_location),
-      onPressed: () {
-        showBottomSheet(
-          context: context,
-          builder: (context) => PinInfoDrawer(),
-        );
-      },
     );
   }
 }
