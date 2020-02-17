@@ -162,7 +162,6 @@ class MyUsernameFormState extends State<MyUsernameForm> {
               onPressed: () {
                 if (formKey.currentState.validate()) {
                   var username = usernameController.text;
-                  usernameController.clear();
                   FocusScope.of(context).unfocus();
 
                   return Alert(
@@ -182,8 +181,11 @@ class MyUsernameFormState extends State<MyUsernameForm> {
                           onPressed: () {
                             //PUT CODE FOR CHANGING USERNAME HERE
 
-
-                            currentUsername = username;
+                            setState(() {
+                              currentUsername = username;
+                            });
+                            usernameController.clear();
+                            Navigator.pop(context);
                           },
                         ),
                         DialogButton(
