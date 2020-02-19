@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 
+//Minimum and maximum character count for the username.
 const int userNameMin = 1;
 const int userNameMax = 100;
 
@@ -26,11 +26,7 @@ class AccountPage extends StatelessWidget {
               runSpacing: 15.0,
               children: <Widget>[
                 FlatButton.icon(
-                  onPressed: () {
-                    //PUT CODE FOR SIGNING OUT HERE
-
-
-                  },
+                  onPressed: () { signOut(); },
                   icon: Icon(
                     Icons.account_box,
                     size: 50.0,
@@ -47,41 +43,7 @@ class AccountPage extends StatelessWidget {
                 ),
                 SizedBox(height: 15.0),
                 FlatButton.icon(
-                  onPressed: () {
-                    return Alert(
-                        context: context,
-                        title: "WARNING: DELETE ACCOUNT",
-                        desc: "This cannot be undone. Would you still like to continue?",
-                        buttons: [
-                          DialogButton(
-                            child: Text(
-                              "Delete",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            color: Colors.red[800],
-                            onPressed: () {
-                              //PUT CODE FOR DELETING ACCOUNT HERE
-
-
-                            },
-                          ),
-                          DialogButton(
-                            child: Text(
-                              "Cancel",
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ]
-                    ).show();
-                  },
+                  onPressed: () { handleDeleteButton(context); },
                   icon: Icon(
                     Icons.delete_forever,
                     size: 50.0,
@@ -103,6 +65,14 @@ class AccountPage extends StatelessWidget {
       ),
     );
   }
+
+  void handleDeleteButton(BuildContext context) {
+    confirmationDialog(context, "delete yout account").then((bool confirmed) {
+      if (confirmed) {
+        deleteAccount();
+      }
+    });
+  }
 }
 
 class MyUsernameForm extends StatefulWidget {
@@ -112,109 +82,118 @@ class MyUsernameForm extends StatefulWidget {
   }
 }
 
-
 class MyUsernameFormState extends State<MyUsernameForm> {
   final TextEditingController usernameController = new TextEditingController();
   final formKey = GlobalKey<FormState>();
-  var currentUsername = "Steve";
+  String currentUsername = getCurrentUsername();
 
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: formKey,
-      child: Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
-            child: Text.rich(
-              TextSpan(
-                children: <TextSpan>[
-                  TextSpan(text: "Current Username\n", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
-                  TextSpan(text: currentUsername, style: TextStyle(fontSize: 20.0)),
-                ]
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          TextFormField(
-            controller: usernameController,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20.0,
-            ),
-            decoration: InputDecoration(
-              hintText: "Enter New Username",
-            ),
-            validator: (username) {
-              RegExp alphaNumRegEx = RegExp(r'^[a-zA-Z0-9]+$');
-
-              if (!alphaNumRegEx.hasMatch(username) && username.length > 0) {
-                return "You must have only alphanumeric characters in your username";
-              } if (username.length > userNameMax) {
-                return "Your username is too long, the maximum length is " + userNameMax.toString();
-              } if (username.length < userNameMin) {
-                return "Your username is too short, the minimum length is " + userNameMin.toString();
-              }
-              return null;
-            }
-          ),
-          FlatButton(
-              onPressed: () {
-                if (formKey.currentState.validate()) {
-                  var username = usernameController.text;
-                  FocusScope.of(context).unfocus();
-
-                  return Alert(
-                      context: context,
-                      title: "WARNING: CHANGE USERNAME",
-                      desc: "Are you sure you want to change your username to \"" + username + "\"?",
-                      buttons: [
-                        DialogButton(
-                          child: Text(
-                            "Change",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          color: Colors.red[800],
-                          onPressed: () {
-                            //PUT CODE FOR CHANGING USERNAME HERE
-
-                            setState(() {
-                              currentUsername = username;
-                            });
-                            usernameController.clear();
-                            Navigator.pop(context);
-                          },
-                        ),
-                        DialogButton(
-                          child: Text(
-                            "Cancel",
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
+        key: formKey,
+        child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
+                child: Text.rich(
+                  TextSpan(
+                      children: <TextSpan>[
+                        TextSpan(text: "Current Username\n", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
+                        TextSpan(text: currentUsername, style: TextStyle(fontSize: 20.0)),
                       ]
-                  ).show();
-                }
-                return null;
-              },
-              child: Text(
-                "Change Username",
-                style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              color: Colors.grey,
-            ),
-        ]
-      )
+              TextFormField(
+                  controller: usernameController,
+                  style: TextStyle(
+                    fontSize: 20.0,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "Enter new username",
+                    suffixIcon: IconButton(
+                        onPressed: () => usernameController.clear(),
+                        icon: Icon(Icons.clear)
+                    ),
+                  ),
+                  validator: (username) {
+                    RegExp alphaNumRegEx = RegExp(r'^[a-zA-Z0-9]+$');
+
+                    if (!alphaNumRegEx.hasMatch(username) && username.length > 0) {
+                      return "You must have only alphanumeric characters in your username";
+                    } if (username.length > userNameMax) {
+                      return "Your username is too long, the maximum length is " + userNameMax.toString();
+                    } if (username.length < userNameMin) {
+                      return "Your username is too short, the minimum length is " + userNameMin.toString();
+                    }
+                    return null;
+                  }
+              ),
+              FlatButton(
+                onPressed: () {
+                  if (formKey.currentState.validate()) {
+                    handleUsernameButton();
+                    FocusScope.of(context).unfocus();
+                  }
+                },
+                child: Text(
+                  "Change Username",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                color: Colors.grey,
+              ),
+            ]
+        )
     );
   }
+
+  void handleUsernameButton() {
+    var newName = usernameController.text;
+    confirmationDialog(context, "change your username to \"" + newName + "\"").then((bool confirmed) {
+      if (confirmed) {
+        setState(() {currentUsername = newName;});
+        usernameController.clear();
+        updateUsername(newName);
+      }
+    });
+  }
 }
+
+Future<bool> confirmationDialog(BuildContext context, String subject) {
+  return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return new AlertDialog(
+          title: new Text("Are you sure you want to " + subject + "?"),
+          actions: <Widget>[
+            new FlatButton(
+              child: const Text("YES"),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+            new FlatButton(
+              child: const Text("NO"),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        );
+      });
+}
+
+void deleteAccount() {}
+
+void signOut() {}
+
+//For updating the username in the database.
+void updateUsername(String newName) {}
+
+//For getting the username from the database.
+String getCurrentUsername() { return "Steve"; }
