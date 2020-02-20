@@ -1,4 +1,4 @@
-import 'package:integrated_project/resources/Coordinate.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/Category.dart';
 import 'package:integrated_project/resources/Review.dart';
 import 'package:integrated_project/resources/User.dart';
@@ -6,7 +6,7 @@ import 'package:integrated_project/resources/User.dart';
 class Pin {
   User _author;
   String _name;
-  Coordinate _coords;
+  LatLng _coords;
   List<Category> _category;
   List<Review> _reviews;
   int _visitorCount;
@@ -37,7 +37,7 @@ class Pin {
 
   List<Category> get category => _category;
 
-  Coordinate get coords => _coords;
+  LatLng get coords => _coords;
 
   String get name => _name;
 
