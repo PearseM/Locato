@@ -1,49 +1,49 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
 
+// TODO: decide on categories
+enum Category {
+  landscape,
+  mountain,
+  water,
+  night,
+}
+
 class Pin {
-  Account _author;
-  String _name;
-  LatLng _coords;
-  List<Category> _category;
+  final String id;
+  final LatLng location;
+
+  final Account author;
+  final String name;
+
+  Set<Category> _categories;
   List<Review> _reviews;
+
   int _visitorCount;
-  int _id;
 
+  Pin(
+    this.id,
+    this.location,
+    this.author,
+    this.name,
+  );
 
-  Pin.oldPin(this._id);
-
-  Pin.newPin(this._author, this._name, this._coords, this._category, Review review) {
-    this._reviews.add(review);
+  Set<Category> get categories => _categories;
+  void addCategory(Category value) {
+    _categories.add(value);
+    // TODO: update DB
   }
 
-  void _updateDatabase() {
-
-  }
-
+  List<Review> get reviews => _reviews;
   void addReview(Review review) {
-    this._reviews.add(review);
-  }
-
-  void addVisitor() {
-    this._visitorCount++;
+    _reviews.add(review);
+    // TODO: update DB
   }
 
   int get visitorCount => _visitorCount;
-
-  List<Review> get reviews => _reviews;
-
-  List<Category> get category => _category;
-
-  LatLng get coords => _coords;
-
-  String get name => _name;
-
-  set name(String value) {
-    _name = value;
+  void incVisitorCount() {
+    _visitorCount++;
+    // TODO: update DB
   }
-
-
 }
