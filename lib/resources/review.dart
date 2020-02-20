@@ -2,25 +2,27 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/account.dart';
 
 class Review {
-  Pin _pin;
-  Account _author;
-  DateTime _date;
-  String _content;
-  bool _flagged = false;
-  int _id;
+  final String id;
 
+  final Pin pin;
+  final Account author;
+  final DateTime timestamp;
 
-  Review.wholeReview(this._pin, this._author, this._date, this._content, this._id);
+  String _body;
 
-  Review.partReview(this._pin,  this._author, this._content);
+  int _flagCount;
 
-  bool get flagged => _flagged;
+  Review(this.id, this.pin, this.author, this.timestamp);
 
-  String get content => _content;
+  String get body => _body;
+  void updateBody(String value) {
+    _body = value;
+    // TODO: update DB
+  }
 
-  DateTime get date => _date;
-
-  Account get author => _author;
-
-  Pin get pin => _pin;
+  int get flagCount => _flagCount;
+  void incFlagCount() {
+    _flagCount++;
+    // TODO: update DB
+  }
 }
