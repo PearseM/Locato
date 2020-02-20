@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:integrated_project/resources/Category.dart';
-import 'package:integrated_project/resources/Review.dart';
-import 'package:integrated_project/resources/Account.dart';
+import 'package:integrated_project/resources/category.dart';
+import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/resources/account.dart';
 
 class Pin {
   Account _author;

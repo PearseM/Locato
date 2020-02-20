@@ -1,4 +1,4 @@
-import 'package:integrated_project/resources/Review.dart';
+import 'package:integrated_project/resources/review.dart';
 
 class Account {
   final String id;

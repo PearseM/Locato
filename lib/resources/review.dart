@@ -1,5 +1,5 @@
-import 'package:integrated_project/resources/Pin.dart';
-import 'package:integrated_project/resources/Account.dart';
+import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/account.dart';
 
 class Review {
   Pin _pin;
