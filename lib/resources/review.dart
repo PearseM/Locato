@@ -1,10 +1,8 @@
-import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/account.dart';
 
 class Review {
   final String id;
 
-  final Pin pin;
   final Account author;
   final DateTime timestamp;
 
@@ -12,7 +10,7 @@ class Review {
 
   int _flagCount;
 
-  Review(this.id, this.pin, this.author, this.timestamp);
+  Review(this.id, this.author, this.timestamp);
 
   String get body => _body;
   void updateBody(String value) {
