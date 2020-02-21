@@ -5,6 +5,8 @@ import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
+import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -20,6 +22,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   EdgeInsets mapOverlap;
   Set<Marker> markers;
   CameraPosition currentMapPosition;
+
+  Set<Pin> pins;
 
   GlobalKey<FormState> formKey;
 
@@ -44,11 +48,17 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  void addMarker(CameraPosition position) {
-    markers.add(Marker(
-      markerId: MarkerId(markers.length.toString()),
-      position: position.target,
-    ));
+  void createPin(CameraPosition location, String name, Review review) {
+    Pin pin = 
+    Pin(
+      pins.length.toString(),
+      location.target,
+      null,
+      name,
+      review,
+    );
+    pins.add(pin);
+    markers.add(pin.createMarker());
   }
 
   void barHeightChange(double height) {
@@ -83,7 +93,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       onPressed: () {
         if (formKey.currentState.validate()) {
-          addMarker(currentMapPosition);
+          NewPinForm form = formKey.currentWidget;
+          String pinName = form.nameController.text;
+          Review review = Review(null, null, form.bodyController.text, DateTime.now());
+          createPin(currentMapPosition, pinName, review);
           closeDrawer();
         }
       },
@@ -149,44 +162,46 @@ class MapBody extends StatefulWidget {
   @override
   State<MapBody> createState() => MapBodyState();
 }
+
 class MapBodyState extends State<MapBody> {
   static const CameraPosition uobPosition =
-  CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<GoogleMap>(
       future: _createMap(),
       builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
-        return
-          Stack(children: [
-            Container(child: snapshot.data),/*
+        return Stack(children: [
+          Container(child: snapshot.data),
+          /*
             GoogleMap(
               padding: widget.mapOverlap,
               onCameraMove: widget.mapMoveCallback,
               initialCameraPosition: widget.initialPosition,
               markers: widget.markers,
             ),*/
-            // the new-pin indicator in the middle of the map
-            Align(
-              child: ScaleTransition(
-                scale: widget.pinAnimation, // scale the pin with this animation
-                child: Transform.translate(
-                  // corrects the offset caused by the mapOverlap
-                  offset: Offset(0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
-                  child: FractionalTranslation(
-                    translation: Offset(0.0, -0.5), // aligns pin point to centre
-                    child: Icon(
-                      Icons.location_on,
-                      size: 48.0,
-                      color: Theme.of(context).primaryColor,
-                    ),
+          // the new-pin indicator in the middle of the map
+          Align(
+            child: ScaleTransition(
+              scale: widget.pinAnimation, // scale the pin with this animation
+              child: Transform.translate(
+                // corrects the offset caused by the mapOverlap
+                offset: Offset(
+                        0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) /
+                    2,
+                child: FractionalTranslation(
+                  translation: Offset(0.0, -0.5), // aligns pin point to centre
+                  child: Icon(
+                    Icons.location_on,
+                    size: 48.0,
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
             ),
-          ]
-        );
+          ),
+        ]);
       },
     );
   }
@@ -199,12 +214,13 @@ class MapBodyState extends State<MapBody> {
         locationPermissionStatus != PermissionStatus.neverAskAgain) {
       await PermissionHandler()
           .requestPermissions([PermissionGroup.locationWhenInUse]);
-    }/*
+    }
+    /*
     setState(() {
       _permissions = permissions;
     });*/
     bool locationGranted = ((await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
         PermissionStatus.granted);
     return GoogleMap(
       padding: widget.mapOverlap,

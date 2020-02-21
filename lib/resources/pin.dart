@@ -27,7 +27,10 @@ class Pin {
     this.location,
     this.author,
     this.name,
-  );
+    Review review,
+  ) {
+    addReview(review);
+  }
 
   Set<Category> get categories => _categories;
   void addCategory(Category value) {
@@ -38,6 +41,7 @@ class Pin {
   List<Review> get reviews => _reviews;
   void addReview(Review review) {
     _reviews.add(review);
+    review.pin = this;
     // TODO: update DB
   }
 
@@ -45,5 +49,13 @@ class Pin {
   void incVisitorCount() {
     _visitorCount++;
     // TODO: update DB
+  }
+
+  Marker createMarker() {
+    return Marker(
+      markerId: MarkerId(id),
+      position: this.location,
+      // TODO: add onTap, infoWindow etc.
+    );
   }
 }
