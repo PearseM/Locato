@@ -17,10 +17,10 @@ class Pin {
   final Account author;
   final String name;
 
-  Set<Category> _categories;
-  List<Review> _reviews;
+  Set<Category> _categories = Set<Category>();
+  List<Review> _reviews = List<Review>();
 
-  int _visitorCount;
+  int _visitorCount = 0;
 
   Pin(
     this.id,

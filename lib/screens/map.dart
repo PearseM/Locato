@@ -23,7 +23,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   Set<Marker> markers;
   CameraPosition currentMapPosition;
 
-  Set<Pin> pins;
+  Set<Pin> pins = Set<Pin>();
 
   GlobalKey<FormState> formKey;
 
@@ -49,8 +49,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   }
 
   void createPin(CameraPosition location, String name, Review review) {
-    Pin pin = 
-    Pin(
+    Pin pin = Pin(
       pins.length.toString(),
       location.target,
       null,
@@ -93,9 +92,11 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       onPressed: () {
         if (formKey.currentState.validate()) {
-          NewPinForm form = formKey.currentWidget;
+          NewPinForm form = formKey.currentContext
+              .findAncestorWidgetOfExactType<NewPinForm>();
           String pinName = form.nameController.text;
-          Review review = Review(null, null, form.bodyController.text, DateTime.now());
+          Review review =
+              Review(null, null, form.bodyController.text, DateTime.now());
           createPin(currentMapPosition, pinName, review);
           closeDrawer();
         }
