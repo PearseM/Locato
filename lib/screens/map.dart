@@ -23,7 +23,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
   // how much the map is covered by the system status bar & BAB
   EdgeInsets mapOverlap;
-  Set<Marker> markers;
   CameraPosition currentMapPosition;
 
   Set<Pin> pins = Set<Pin>();
@@ -65,7 +64,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     );
     setState(() {
       pins.add(pin);
-      markers.add(pin.createMarker());
     });
     Database.addPin(pin);
   }
@@ -96,7 +94,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         ); //TODO Add review
         setState(() {
           pins.add(pin);
-          markers.add(pin.createMarker());
         });
       });
     });
@@ -113,7 +110,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showDrawer = false;
 
     mapOverlap = EdgeInsets.zero;
-    markers = Set<Marker>();
     currentMapPosition =
         CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
@@ -150,7 +146,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapMoveCallback: (value) => currentMapPosition = value,
         initialPosition: currentMapPosition,
         mapOverlap: mapOverlap,
-        markers: markers,
+        pins: pins,
         pinAnimation: drawerAnimator,
         queryPins: queryPins,
       ),
@@ -184,7 +180,7 @@ class MapBody extends StatefulWidget {
     this.mapMoveCallback,
     this.initialPosition,
     this.mapOverlap,
-    this.markers,
+    this.pins,
     this.pinAnimation,
     this.queryPins,
   }) : super(key: key);
@@ -194,7 +190,7 @@ class MapBody extends StatefulWidget {
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
 
-  final Set<Marker> markers;
+  final Set<Pin> pins;
 
   final Animation<double> pinAnimation;
 
@@ -260,12 +256,17 @@ class MapBodyState extends State<MapBody> {
 
   @override
   Widget build(BuildContext context) {
+    Set<Marker> markers = Set<Marker>();
+    for(Pin pin in widget.pins) {
+      markers.add(pin.createMarker());
+    }
+
     return Stack(
       children: <Widget>[
         GoogleMap(
           initialCameraPosition: widget.initialPosition,
           padding: widget.mapOverlap,
-          markers: widget.markers,
+          markers: markers,
           myLocationEnabled: locationEnabled,
           myLocationButtonEnabled: locationEnabled,
           onCameraMove: widget.mapMoveCallback,
