@@ -206,64 +206,92 @@ class MapBodyState extends State<MapBody> {
   static const CameraPosition uobPosition =
       CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
+  bool locationEnabled;
+
+  /// monitors changes to location permission and updates map.
+  ///
+  /// if the location service becomes enabled but the permission
+  /// is denied, requests permission (unless never-ask-again chosen).
+  void monitorLocationPerm() async {
+    ServiceStatus oldServiceStatus, serviceStatus;
+
+    while (true) {
+      oldServiceStatus = serviceStatus;
+      serviceStatus = await PermissionHandler()
+          .checkServiceStatus(PermissionGroup.location);
+      // only check if the service status has changed
+      if (serviceStatus == oldServiceStatus) continue;
+
+      // if service is off, disable location
+      if (serviceStatus == ServiceStatus.disabled) {
+        setState(() {
+          locationEnabled = false;
+        });
+        continue;
+      }
+
+      // service has been turned on, check permissions
+      PermissionStatus permissionStatus = await PermissionHandler()
+          .checkPermissionStatus(PermissionGroup.location);
+
+      if (permissionStatus == PermissionStatus.denied ||
+          permissionStatus == PermissionStatus.unknown) {
+        permissionStatus = (await PermissionHandler().requestPermissions(
+            [PermissionGroup.location]))[PermissionGroup.location];
+      }
+
+      setState(() {
+        if (permissionStatus == PermissionStatus.denied ||
+            permissionStatus == PermissionStatus.neverAskAgain) {
+          locationEnabled = false;
+        } else if (permissionStatus == PermissionStatus.granted) {
+          locationEnabled = true;
+        }
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    monitorLocationPerm();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<GoogleMap>(
-      future: _createMap(),
-      builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
-        return Stack(children: [
-          Container(child: snapshot.data),
-          /*
-            GoogleMap(
-              padding: widget.mapOverlap,
-              onCameraMove: widget.mapMoveCallback,
-              initialCameraPosition: widget.initialPosition,
-              markers: widget.markers,
-            ),*/
-          // the new-pin indicator in the middle of the map
-          Align(
-            child: ScaleTransition(
-              scale: widget.pinAnimation, // scale the pin with this animation
-              child: Transform.translate(
-                // corrects the offset caused by the mapOverlap
-                offset: Offset(
-                        0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) /
-                    2,
-                child: FractionalTranslation(
-                  translation: Offset(0.0, -0.5), // aligns pin point to centre
-                  child: Icon(
-                    Icons.location_on,
-                    size: 48.0,
-                    color: Theme.of(context).primaryColor,
-                  ),
+    return Stack(
+      children: <Widget>[
+        GoogleMap(
+          initialCameraPosition: widget.initialPosition,
+          padding: widget.mapOverlap,
+          markers: widget.markers,
+          myLocationEnabled: locationEnabled,
+          myLocationButtonEnabled: locationEnabled,
+          onCameraMove: widget.mapMoveCallback,
+          onMapCreated: (_) => widget.queryPins(),
+        ),
+        Align(
+          child: ScaleTransition(
+            scale: widget.pinAnimation, // scale the pin with this animation
+            child: Transform.translate(
+              // corrects the offset caused by the mapOverlap
+              offset: Offset(
+                0.0,
+                (widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
+              ),
+              child: FractionalTranslation(
+                translation: Offset(0.0, -0.5), // aligns pin point to centre
+                child: Icon(
+                  Icons.location_on,
+                  size: 48.0,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
             ),
           ),
-        ]);
-      },
-    );
-  }
-
-  Future<GoogleMap> _createMap() async {
-    PermissionStatus locationPermissionStatus = await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.locationWhenInUse);
-    if (locationPermissionStatus != PermissionStatus.disabled &&
-        locationPermissionStatus != PermissionStatus.neverAskAgain) {
-      await PermissionHandler()
-          .requestPermissions([PermissionGroup.locationWhenInUse]);
-    }
-    bool locationGranted = ((await PermissionHandler()
-            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
-        PermissionStatus.granted);
-    return GoogleMap(
-      padding: widget.mapOverlap,
-      onCameraMove: widget.mapMoveCallback,
-      initialCameraPosition: widget.initialPosition,
-      markers: widget.markers,
-      myLocationEnabled: locationGranted,
-      myLocationButtonEnabled: locationGranted,
-      onMapCreated: (GoogleMapController controller) => widget.queryPins(),
+        ),
+      ],
     );
   }
 }
