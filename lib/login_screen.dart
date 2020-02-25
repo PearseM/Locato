@@ -84,7 +84,7 @@ class LoginScreenState extends State<LoginScreen> {
             new OutlineButton(
               splashColor: Colors.grey,
               onPressed: () {
-                signInWithGoogle().whenComplete(() {
+                SignIn().signInWithGoogle().whenComplete(() {
                   Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -11,7 +11,10 @@ class Account {
   List<Review> _reviews;
   List<Review> _helpful;
 
-  Account(this.id);
+  Account(this.id, {email, userName,}) {
+    this._email = email;
+    this._userName = userName;
+  }
 
   String get userName => _userName;
   void updateUserName(String value) {
