@@ -257,7 +257,7 @@ class MapBodyState extends State<MapBody> {
   @override
   Widget build(BuildContext context) {
     Set<Marker> markers = Set<Marker>();
-    for(Pin pin in widget.pins) {
+    for (Pin pin in widget.pins) {
       markers.add(pin.createMarker());
     }
 
@@ -363,6 +363,8 @@ class BottomBarNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Set<Pin> pins = context.findAncestorStateOfType<MapPageState>().pins;
+    
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -385,7 +387,7 @@ class BottomBarNav extends StatelessWidget {
         Spacer(),
         IconButton(
           onPressed: () {
-            showSearch(context: context, delegate: MapSearchDelegate());
+            showSearch(context: context, delegate: MapSearchDelegate(pins));
           },
           icon: Icon(Icons.search),
         ),
