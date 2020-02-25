@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:integrated_project/screens/map.dart';
+import 'package:integrated_project/login_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,11 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App Name',
+      title: 'PhotoScout',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MapPage(),
+      home: LoginScreen(),
     );
   }
 }
