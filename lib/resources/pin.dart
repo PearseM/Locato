@@ -61,12 +61,6 @@ class Pin {
       position: this.location,
       onTap: () => showModalBottomSheet(
         isScrollControlled: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(8.0),
-            bottom: Radius.zero,
-          ),
-        ),
         context: context,
         builder: (_) => PinInfoDrawer(this),
       ),

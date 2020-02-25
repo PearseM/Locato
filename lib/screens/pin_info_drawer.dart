@@ -17,21 +17,46 @@ class PinInfoDrawer extends StatelessWidget {
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(20),
-            child: Text(
-              pin.name,
-              style: Theme.of(context).textTheme.title,
-            ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  color: Theme.of(context).accentColor,
+                  child: Text(
+                    pin.name,
+                    style: Theme.of(context)
+                        .textTheme
+                        .title
+                        .copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
+            ]
           ),
-          Divider(),
           Expanded(
-            child: ListView.separated(
-              controller: scrollController,
-              itemCount: pin.reviews.length,
-              separatorBuilder: (_, i) => Divider(),
-              itemBuilder: (_, i) => ReviewItem(pin.reviews[i]),
-            ),
+            child: Stack(children: [
+              ListView.separated(
+                controller: scrollController,
+                itemCount: pin.reviews.length * 25,
+                separatorBuilder: (_, i) => Divider(),
+                itemBuilder: (_, i) => ReviewItem(pin.reviews[0]),
+              ),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
+                  child: RaisedButton.icon(
+                    onPressed: () {},
+                    icon: Icon(Icons.add),
+                    shape: StadiumBorder(),
+                    color: Theme.of(context).accentColor,
+                    textColor: Colors.white,
+                    label: Text("Add review"),
+                  ),
+                ),
+              ),
+            ]),
           ),
         ],
       ),
