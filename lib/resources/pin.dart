@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
@@ -57,5 +58,13 @@ class Pin {
       position: this.location,
       // TODO: add onTap, infoWindow etc.
     );
+  }
+
+  Map<String, dynamic> asMap() {
+    Map<String, dynamic> pin = Map();
+    pin["name"] = name;
+    pin["location"] = GeoPoint(location.latitude, location.longitude);
+    pin["visitorCount"] = _visitorCount;
+    return pin;
   }
 }

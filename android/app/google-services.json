@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "791047764024",
+    "firebase_url": "https://integrated-project-18481.firebaseio.com",
+    "project_id": "integrated-project-18481",
+    "storage_bucket": "integrated-project-18481.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791047764024:android:a5b13c3641ecab2bf40ecd",
+        "android_client_info": {
+          "package_name": "uk.ac.bath.pm779.integrated_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "791047764024-vv1clt1hipbr9neou215n2f568d966ng.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvQrmTvH1ks1LHsIJ8lQ2MtYQ6b-ZiRks"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "791047764024-vv1clt1hipbr9neou215n2f568d966ng.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "791047764024-pgc7uv9aritl79l49l7c0466mbmpfu75.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "uk.ac.bath.pm779.integratedProject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
