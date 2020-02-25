@@ -1,32 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:integrated_project/resources/pin.dart';
 
-class PinInfoDrawer extends StatefulWidget {
-  @override
-  _PinInfoDrawerState createState() => _PinInfoDrawerState();
-}
+class PinInfoDrawer extends StatelessWidget {
+  final Pin pin;
 
-class _PinInfoDrawerState extends State<PinInfoDrawer> {
+  PinInfoDrawer(this.pin);
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 500.0,
-      child: Column(
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.75,
+      minChildSize: 0.5,
+      maxChildSize: 0.75,
+      builder: (_, scrollController) => Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.only(left: 8.0, top: 8.0, bottom: 20.0,),
-                  color: Colors.blue,
-                  child: Text(
-                    "Name of pin",
-                    style: Theme.of(context).textTheme.title.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            padding: EdgeInsets.only(
+              left: 8.0,
+              top: 8.0,
+              bottom: 20.0,
+            ),
+            child: Text(
+              pin.name,
+              style: Theme.of(context).textTheme.title,
+            ),
+          ),
+          Divider(),
+          Expanded(
+            child: ListView.separated(
+              controller: scrollController,
+              itemCount: 25,
+              separatorBuilder: (_, i) => Divider(),
+              itemBuilder: (_, i) => Text("Review " + i.toString()),
+            ),
           ),
         ],
       ),

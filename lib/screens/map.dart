@@ -258,7 +258,7 @@ class MapBodyState extends State<MapBody> {
   Widget build(BuildContext context) {
     Set<Marker> markers = Set<Marker>();
     for (Pin pin in widget.pins) {
-      markers.add(pin.createMarker());
+      markers.add(pin.createMarker(context));
     }
 
     return Stack(
