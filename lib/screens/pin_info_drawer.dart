@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/review.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final Pin pin;
@@ -15,13 +16,9 @@ class PinInfoDrawer extends StatelessWidget {
       maxChildSize: 0.75,
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
+        children: [
           Container(
-            padding: EdgeInsets.only(
-              left: 8.0,
-              top: 8.0,
-              bottom: 20.0,
-            ),
+            padding: EdgeInsets.all(20),
             child: Text(
               pin.name,
               style: Theme.of(context).textTheme.title,
@@ -31,13 +28,27 @@ class PinInfoDrawer extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               controller: scrollController,
-              itemCount: 25,
+              itemCount: pin.reviews.length,
               separatorBuilder: (_, i) => Divider(),
-              itemBuilder: (_, i) => Text("Review " + i.toString()),
+              itemBuilder: (_, i) => ReviewItem(pin.reviews[i]),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class ReviewItem extends StatelessWidget {
+  final Review review;
+
+  ReviewItem(this.review);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      child: Text(review.body),
     );
   }
 }
