@@ -15,7 +15,7 @@ enum Category {
 }
 
 class Pin {
-  final String id;
+  String id;
   final LatLng location;
 
   final Account author;
@@ -72,6 +72,16 @@ class Pin {
     pin["name"] = name;
     pin["location"] = GeoPoint(location.latitude, location.longitude);
     pin["visitorCount"] = _visitorCount;
+    pin["author"] = author.id;
+    return pin;
+  }
+
+  static Map<String, dynamic> newPinMap(String name, LatLng location, Account author) {
+    Map<String, dynamic> pin = Map();
+    pin["name"] = name;
+    pin["location"] = GeoPoint(location.latitude, location.longitude);
+    pin["visitorCount"] = 0;
+    pin["author"] = author.id;
     return pin;
   }
 }

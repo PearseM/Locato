@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,6 +7,7 @@ import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
+import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
 import 'package:integrated_project/resources/pin.dart';
@@ -34,6 +36,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   FloatingActionButton fabConfirmPin;
   FloatingActionButton currentFab;
 
+  //User instance
+  FirebaseUser _user;
+  Account _account;
+
   void openDrawer() {
     setState(() {
       drawerAnimator.forward();
@@ -54,18 +60,18 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   ///
   /// Requires the location of the pin, a name and the first review to be
   /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, Review review) {
-    Pin pin = Pin(
+  void createPin(CameraPosition location, String name, String reviewContent) async {
+    /*Pin pin = Pin(
       pins.length.toString(),
       location.target,
-      null,
+      (_user == null) ? null : _account,
       name,
       review,
-    );
+    );*/
+    Pin pin = await Database.newPin(location.target, name, reviewContent, _account);
     setState(() {
       pins.add(pin);
     });
-    Database.addPin(pin);
   }
 
   void barHeightChange(double height) {
@@ -81,14 +87,15 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     query.listen((data) {
       data.documentChanges.forEach((documentChange) {
         Map<String, dynamic> document = documentChange.document.data;
-        Review review = Review("0", Account("0"), "Review", DateTime.now());
+        Review review = Review("0", Account("0"), "Review", DateTime.now(),
+            0); //TODO change this so it actually gets the pins
         Pin pin = Pin(
           documentChange.document.documentID,
           LatLng(
-              document["location"].latitude,
-              document["location"].longitude,
+            document["location"].latitude,
+            document["location"].longitude,
           ),
-          Account("0"),
+          Account(document["author"]),
           document["name"],
           review,
         ); //TODO Add review
@@ -126,9 +133,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           NewPinForm form = formKey.currentContext
               .findAncestorWidgetOfExactType<NewPinForm>();
           String pinName = form.nameController.text;
-          Review review =
-              Review(null, null, form.bodyController.text, DateTime.now());
-          createPin(currentMapPosition, pinName, review);
+          createPin(currentMapPosition, pinName, form.bodyController.text);
           closeDrawer();
         }
       },
@@ -137,6 +142,14 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     );
 
     currentFab = fabAddPin;
+
+    SignIn.auth.currentUser().then((user) {
+      Account account = Account.fromFirebaseUser(user);
+      setState(() {
+        _user = user;
+        _account = account;
+      });
+    });
   }
 
   @override
