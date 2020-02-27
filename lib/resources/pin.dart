@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/screens/pin_info_drawer.dart';
 
 // TODO: decide on categories
 enum Category {
@@ -52,11 +55,15 @@ class Pin {
     // TODO: update DB
   }
 
-  Marker createMarker() {
+  Marker createMarker(BuildContext context) {
     return Marker(
       markerId: MarkerId(id),
       position: this.location,
-      // TODO: add onTap, infoWindow etc.
+      onTap: () => showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (_) => PinInfoDrawer(this),
+      ),
     );
   }
 
