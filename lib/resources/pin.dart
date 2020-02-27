@@ -22,7 +22,7 @@ class Pin {
   final String name;
 
   Set<Category> _categories = Set<Category>();
-  List<Review> _reviews = List<Review>();
+  Set<Review> _reviews = Set<Review>();
 
   int _visitorCount = 0;
 
@@ -42,11 +42,10 @@ class Pin {
     // TODO: update DB
   }
 
-  List<Review> get reviews => _reviews;
+  Set<Review> get reviews => _reviews;
   void addReview(Review review) {
     _reviews.add(review);
     review.pin = this;
-    // TODO: update DB
   }
 
   int get visitorCount => _visitorCount;

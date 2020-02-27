@@ -99,7 +99,7 @@ Widget _myListView(BuildContext context) {
   Account account = Account(null);
   var location = new LatLng(52.518611, 13.408056);
   for (int i = 0; i < 25; i++) {
-    Review review = Review(null, account, "Comment 1", DateTime.now());
+    Review review = Review(null, account, "Comment 1", DateTime.now(), 0);
     Pin pin = Pin(null, location, account, "Pin 1", review);
     account.addReview(review);
   }

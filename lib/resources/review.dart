@@ -18,6 +18,14 @@ class Review {
 
   String get body => _body;
 
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(other) {
+    return id == other.id;
+  }
+
   void updateBody(String value) {
     _body = value;
     // TODO: update DB
@@ -50,7 +58,8 @@ class Review {
     return review;
   }
 
-  /*static Review fromMap(Map<String, dynamic> data) {
-    return Review(id, author, _body, timestamp, _flagCount)
-  }*/
+  static Review fromMap(String id, Map<String, dynamic> data) {
+    return Review(id, Account(data["author"]), data["content"],
+        data["dateAdded"].toDate(), data["flagCount"]);
+  }
 }

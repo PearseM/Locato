@@ -60,15 +60,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   ///
   /// Requires the location of the pin, a name and the first review to be
   /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, String reviewContent) async {
-    /*Pin pin = Pin(
-      pins.length.toString(),
-      location.target,
-      (_user == null) ? null : _account,
-      name,
-      review,
-    );*/
-    Pin pin = await Database.newPin(location.target, name, reviewContent, _account);
+  void createPin(
+      CameraPosition location, String name, String reviewContent) async {
+    Pin pin =
+        await Database.newPin(location.target, name, reviewContent, _account);
     setState(() {
       pins.add(pin);
     });
@@ -85,10 +80,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void queryPins() {
     Stream<QuerySnapshot> query = Database.getPins();
     query.listen((data) {
-      data.documentChanges.forEach((documentChange) {
+      data.documentChanges.forEach((documentChange) async {
         Map<String, dynamic> document = documentChange.document.data;
-        Review review = Review("0", Account("0"), "Review", DateTime.now(),
-            0); //TODO change this so it actually gets the pins
+        Review review =
+            await Database.getFirstReview(documentChange.document.documentID);
         Pin pin = Pin(
           documentChange.document.documentID,
           LatLng(
@@ -98,7 +93,15 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           Account(document["author"]),
           document["name"],
           review,
-        ); //TODO Add review
+        );
+        Database.getReviewsForPin(documentChange.document.documentID)
+            .listen((data) {
+          data.documentChanges.removeAt(0);
+          data.documentChanges.forEach((change) {
+            pin.addReview(Review.fromMap(
+                change.document.documentID, change.document.data));
+          });
+        });
         setState(() {
           pins.add(pin);
         });
@@ -377,7 +380,7 @@ class BottomBarNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Set<Pin> pins = context.findAncestorStateOfType<MapPageState>().pins;
-    
+
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

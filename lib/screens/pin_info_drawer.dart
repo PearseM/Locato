@@ -38,9 +38,9 @@ class PinInfoDrawer extends StatelessWidget {
             child: Stack(children: [
               ListView.separated(
                 controller: scrollController,
-                itemCount: pin.reviews.length * 25,
+                itemCount: pin.reviews.length,
                 separatorBuilder: (_, i) => Divider(),
-                itemBuilder: (_, i) => ReviewItem(pin.reviews[0]),
+                itemBuilder: (_, i) => ReviewItem(pin.reviews.elementAt(i)),
               ),
               Align(
                 alignment: Alignment.bottomRight,

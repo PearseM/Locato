@@ -27,6 +27,28 @@ class Database {
     pin.reviews.elementAt(0).id = initialReview.documentID;
   }
 
+  static Stream<QuerySnapshot> getReviewsForPin(String pinID) {
+    return Firestore.instance
+        .collection("reviews")
+        .where("pinID", isEqualTo: pinID)
+        .orderBy("dateAdded", descending: true)
+        .snapshots();
+  }
+
+  static Future<Review> getFirstReview(String pinID) async {
+    QuerySnapshot review = await Firestore.instance
+        .collection("reviews")
+        .where("pinID", isEqualTo: pinID)
+        .orderBy("dateAdded", descending: true)
+        .limit(1)
+        .snapshots()
+        .first;
+    DocumentSnapshot firstReviewDocument =
+        review.documentChanges.first.document;
+    return Review.fromMap(
+        firstReviewDocument.documentID, firstReviewDocument.data);
+  }
+
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
       Account author) async {
     //Add the pin to the database
