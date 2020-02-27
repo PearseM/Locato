@@ -1,10 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
+import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -20,6 +25,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   EdgeInsets mapOverlap;
   Set<Marker> markers;
   CameraPosition currentMapPosition;
+
+  Set<Pin> pins = Set<Pin>();
 
   GlobalKey<FormState> formKey;
 
@@ -44,17 +51,54 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  void addMarker(CameraPosition position) {
-    markers.add(Marker(
-      markerId: MarkerId(markers.length.toString()),
-      position: position.target,
-    ));
+  /// Creates a new pin and displays it on the map.
+  ///
+  /// Requires the location of the pin, a name and the first review to be
+  /// displayed. The pin will also be added to the database
+  void createPin(CameraPosition location, String name, Review review) {
+    Pin pin = Pin(
+      pins.length.toString(),
+      location.target,
+      null,
+      name,
+      review,
+    );
+    setState(() {
+      pins.add(pin);
+      markers.add(pin.createMarker());
+    });
+    Database.addPin(pin);
   }
 
   void barHeightChange(double height) {
     setState(() {
       mapOverlap =
           MediaQuery.of(context).padding + EdgeInsets.only(bottom: height);
+    });
+  }
+
+  /// Fetches the pins from the database and adds them to the map.
+  void queryPins() {
+    Stream<QuerySnapshot> query = Database.getPins();
+    query.listen((data) {
+      data.documentChanges.forEach((documentChange) {
+        Map<String, dynamic> document = documentChange.document.data;
+        Review review = Review("0", Account("0"), "Review", DateTime.now());
+        Pin pin = Pin(
+          documentChange.document.documentID,
+          LatLng(
+              document["location"].latitude,
+              document["location"].longitude,
+          ),
+          Account("0"),
+          document["name"],
+          review,
+        ); //TODO Add review
+        setState(() {
+          pins.add(pin);
+          markers.add(pin.createMarker());
+        });
+      });
     });
   }
 
@@ -83,7 +127,12 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       onPressed: () {
         if (formKey.currentState.validate()) {
-          addMarker(currentMapPosition);
+          NewPinForm form = formKey.currentContext
+              .findAncestorWidgetOfExactType<NewPinForm>();
+          String pinName = form.nameController.text;
+          Review review =
+              Review(null, null, form.bodyController.text, DateTime.now());
+          createPin(currentMapPosition, pinName, review);
           closeDrawer();
         }
       },
@@ -103,6 +152,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapOverlap: mapOverlap,
         markers: markers,
         pinAnimation: drawerAnimator,
+        queryPins: queryPins,
       ),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -136,9 +186,11 @@ class MapBody extends StatefulWidget {
     this.mapOverlap,
     this.markers,
     this.pinAnimation,
+    this.queryPins,
   }) : super(key: key);
 
   final Function(CameraPosition) mapMoveCallback;
+  final Function() queryPins;
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
 
@@ -149,62 +201,60 @@ class MapBody extends StatefulWidget {
   @override
   State<MapBody> createState() => MapBodyState();
 }
+
 class MapBodyState extends State<MapBody> {
   static const CameraPosition uobPosition =
-  CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<GoogleMap>(
       future: _createMap(),
       builder: (BuildContext context, AsyncSnapshot<GoogleMap> snapshot) {
-        return
-          Stack(children: [
-            Container(child: snapshot.data),/*
+        return Stack(children: [
+          Container(child: snapshot.data),
+          /*
             GoogleMap(
               padding: widget.mapOverlap,
               onCameraMove: widget.mapMoveCallback,
               initialCameraPosition: widget.initialPosition,
               markers: widget.markers,
             ),*/
-            // the new-pin indicator in the middle of the map
-            Align(
-              child: ScaleTransition(
-                scale: widget.pinAnimation, // scale the pin with this animation
-                child: Transform.translate(
-                  // corrects the offset caused by the mapOverlap
-                  offset: Offset(0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
-                  child: FractionalTranslation(
-                    translation: Offset(0.0, -0.5), // aligns pin point to centre
-                    child: Icon(
-                      Icons.location_on,
-                      size: 48.0,
-                      color: Theme.of(context).primaryColor,
-                    ),
+          // the new-pin indicator in the middle of the map
+          Align(
+            child: ScaleTransition(
+              scale: widget.pinAnimation, // scale the pin with this animation
+              child: Transform.translate(
+                // corrects the offset caused by the mapOverlap
+                offset: Offset(
+                        0.0, widget.mapOverlap.top - widget.mapOverlap.bottom) /
+                    2,
+                child: FractionalTranslation(
+                  translation: Offset(0.0, -0.5), // aligns pin point to centre
+                  child: Icon(
+                    Icons.location_on,
+                    size: 48.0,
+                    color: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
             ),
-          ]
-        );
+          ),
+        ]);
       },
     );
   }
 
   Future<GoogleMap> _createMap() async {
-    //Map<PermissionGroup, PermissionStatus> permissions;
     PermissionStatus locationPermissionStatus = await PermissionHandler()
         .checkPermissionStatus(PermissionGroup.locationWhenInUse);
     if (locationPermissionStatus != PermissionStatus.disabled &&
         locationPermissionStatus != PermissionStatus.neverAskAgain) {
       await PermissionHandler()
           .requestPermissions([PermissionGroup.locationWhenInUse]);
-    }/*
-    setState(() {
-      _permissions = permissions;
-    });*/
+    }
     bool locationGranted = ((await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
+            .checkPermissionStatus(PermissionGroup.locationWhenInUse)) ==
         PermissionStatus.granted);
     return GoogleMap(
       padding: widget.mapOverlap,
@@ -213,6 +263,7 @@ class MapBodyState extends State<MapBody> {
       markers: widget.markers,
       myLocationEnabled: locationGranted,
       myLocationButtonEnabled: locationGranted,
+      onMapCreated: (GoogleMapController controller) => widget.queryPins(),
     );
   }
 }
@@ -303,13 +354,6 @@ class BottomBarNav extends StatelessWidget {
           ),
         ),
         Spacer(),
-        //This is no longer needed as the location button is part of the map
-        /*
-        IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.gps_fixed),
-        ),
-         */
         IconButton(
           onPressed: () {
             showSearch(context: context, delegate: MapSearchDelegate());

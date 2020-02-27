@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 class NewPinForm extends StatelessWidget {
   static GlobalKey _formKey;
 
+  final TextEditingController nameController = new TextEditingController();
+  final TextEditingController bodyController = new TextEditingController();
+
   NewPinForm(GlobalKey formKey) {
     _formKey = formKey;
   }
@@ -17,6 +20,7 @@ class NewPinForm extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextFormField(
+              controller: nameController,
               decoration: InputDecoration(
                 hintText: "Name of pin",
                 border: UnderlineInputBorder(),
@@ -27,6 +31,7 @@ class NewPinForm extends StatelessWidget {
             ),
             SizedBox(height: 5.0),
             TextFormField(
+              controller: bodyController,
               decoration: InputDecoration(
                 hintText: "Description of pin",
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
