@@ -8,8 +8,8 @@ class Account {
 
   int _visitedCount;
 
-  List<Review> _reviews;
-  List<Review> _helpful;
+  List<Review> _reviews = List<Review>();
+  List<Review> _helpful = List<Review>();
 
   Account(this.id);
 
