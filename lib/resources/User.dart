@@ -7,6 +7,9 @@ class User extends Account{
   int _visitedCount;
   List<Review> _foundHelpful;
 
+  void newList() {
+    this._reviews = List();
+  }
   void increaseVisited() {
     this._visitedCount++;
   }
@@ -19,6 +22,12 @@ class User extends Account{
     this._reviews.add(review);
   }
 
+  int reviewCount() {
+    return this._reviews.length;
+  }
+  Review getReview(int i) {
+    return _reviews[i];
+  }
   String get email => _email;
 
   int get visitedCount => _visitedCount;

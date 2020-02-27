@@ -18,6 +18,7 @@ class Pin {
   Pin.newPin(this._author, this._name, this._coords, this._category, Review review) {
     this._reviews.add(review);
   }
+  Pin.tempPin(this._author, this._name, this._coords, this._category);
 
   void _updateDatabase() {
 

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:integrated_project/screens/map.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/Pin.dart';
+import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:integrated_project/resources/Review.dart';
+import 'package:integrated_project/resources/User.dart';
+import 'package:integrated_project/resources/Category.dart';
 
 class UserCommentsPage extends StatelessWidget {
   @override
@@ -21,11 +26,6 @@ class UserCommentsPage extends StatelessWidget {
         body: BodyLayout(),
       ),
     );
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: Text("Your reviews"),
-//      ),
-//    );
   }
 }
 
@@ -38,44 +38,72 @@ class BodyLayout extends StatelessWidget {
 
 Widget _myListView(BuildContext context) {
 
-  // backing data
-  final userPins = ['Pin 1', 'Pin 2', 'Pin 3', 'Pin 4', 'Pin 5', 'Pin 6', 'Pin 7',
-    'Pin 8', 'Pin 9', 'Pin 10', 'Pin 11', 'Pin 12', 'Pin 13', 'Pin 14', 'Pin 15', 'Pin 16', 'Pin 17'
-    , 'Pin 18', 'Pin 19', 'Pin 20', 'Pin 21', 'Pin 22', 'Pin 23', 'Pin 24', 'Pin 25', 'Pin 26', 'Pin 27'
-    , 'Pin 28', 'Pin 29', 'Pin 30', 'Pin 31', 'Pin 32', 'Pin 33', 'Pin 34', 'Pin 35', 'Pin 36', 'Pin 37'
-    , 'Pin 38', 'Pin 39', 'Pin 40', 'Pin 41', 'Pin 42', 'Pin 43', 'Pin 44'];
-  final userComments = ['Comment 1', 'Comment 2', 'Comment 3', 'Comment 4', 'Comment 5', 'Comment 6', 'Comment 7',
-    'Comment 8', 'Comment 9', 'Comment 10', 'Comment 11', 'Comment 12', 'Comment 13', 'Comment 14', 'Comment 15', 'Comment 16', 'Comment 17'
-    , 'Comment 18', 'Comment 19', 'Comment 20', 'Comment 21', 'Comment 22', 'Comment 23', 'Comment 24', 'Comment 25', 'Comment 26', 'Comment 27'
-    , 'Comment 28', 'Comment 29', 'Comment 30', 'Comment 31', 'Comment 32', 'Comment 33', 'Comment 34', 'Comment 35', 'Comment 36', 'Comment 37'
-    , 'Comment 38', 'Comment 39', 'Comment 40', 'Comment 41', 'Comment 42', 'Comment 43', 'Comment 44'];
-  final userTimes = ['11:01', '11:02', '11:03', '11:04', '11:05', '11:06', '11:07', '11:08', '11:09',
-  '11:10', '11:11', '11:12', '11:13', '11:14', '11:15', '11:16', '11:17', '11:18', '11:19',
-  '11:20', '11:21', '11:22', '11:23', '11:24', '11:25', '11:26', '11:27', '11:28', '11:29',
-  '11:30', '11:31', '11:32', '11:33', '11:34', '11:35', '11:36', '11:37', '11:38', '11:39',
-    '11:40', '11:41', '11:42', '11:43', '11:44'];
-
+  var user = new User();
+  user.newList();
+  var cat = new List<Category>();
+  var coord1 = new LatLng(52.518611,13.408056);
+  var pin1 = Pin.tempPin(user, "Pin1", coord1, cat);
+  var pin2 = Pin.tempPin(user, "Pin2", coord1, cat);
+  var pin3 = Pin.tempPin(user, "Pin3", coord1, cat);
+  var pin4 = Pin.tempPin(user, "Pin4", coord1, cat);
+  var pin5 = Pin.tempPin(user, "Pin5", coord1, cat);
+  var pin6 = Pin.tempPin(user, "Pin6", coord1, cat);
+  var pin7 = Pin.tempPin(user, "Pin7", coord1, cat);
+  var pin8 = Pin.tempPin(user, "Pin8", coord1, cat);
+  var pin9 = Pin.tempPin(user, "Pin9", coord1, cat);
+  var pin10 = Pin.tempPin(user, "Pin10", coord1, cat);
+  var pin11 = Pin.tempPin(user, "Pin11", coord1, cat);
+  var pin12 = Pin.tempPin(user, "Pin12", coord1, cat);
+  var pin13 = Pin.tempPin(user, "Pin13", coord1, cat);
+  var pin14 = Pin.tempPin(user, "Pin14", coord1, cat);
+  var review1 = new Review.wholeReview(pin1, user, DateTime.now(), "Comment 1", 001);
+  var review2 = new Review.wholeReview(pin2, user, DateTime.now(), "Comment 2", 002);
+  var review3 = new Review.wholeReview(pin3, user, DateTime.now(), "Comment 3", 003);
+  var review4 = new Review.wholeReview(pin4, user, DateTime.now(), "Comment 4", 004);
+  var review5 = new Review.wholeReview(pin5, user, DateTime.now(), "Comment 5", 005);
+  var review6 = new Review.wholeReview(pin6, user, DateTime.now(), "Comment 6", 006);
+  var review7 = new Review.wholeReview(pin7, user, DateTime.now(), "Comment 7", 007);
+  var review8 = new Review.wholeReview(pin8, user, DateTime.now(), "Comment 8", 008);
+  var review9 = new Review.wholeReview(pin9, user, DateTime.now(), "Comment 9", 009);
+  var review10 = new Review.wholeReview(pin10, user, DateTime.now(), "Comment 10", 010);
+  var review11 = new Review.wholeReview(pin11, user, DateTime.now(), "Comment 11", 011);
+  var review12 = new Review.wholeReview(pin12, user, DateTime.now(), "Comment 12", 012);
+  var review13 = new Review.wholeReview(pin13, user, DateTime.now(), "Comment 13", 013);
+  var review14 = new Review.wholeReview(pin14, user, DateTime.now(), "Comment 14", 014);
+  user.addReview(review1);
+  user.addReview(review2);
+  user.addReview(review3);
+  user.addReview(review4);
+  user.addReview(review5);
+  user.addReview(review6);
+  user.addReview(review7);
+  user.addReview(review8);
+  user.addReview(review9);
+  user.addReview(review10);
+  user.addReview(review11);
+  user.addReview(review12);
+  user.addReview(review13);
+  user.addReview(review14);
 
   return ListView.separated(
     separatorBuilder: (context, index) => Divider(
       color: Colors.black,
     ),
-    itemCount: userPins.length,
+    itemCount: 14,
     itemBuilder: (context, index) {
-      return ListTile(
-        title: Text(userPins[index]),
-        subtitle: Text(userTimes[index] + " - " + userComments[index]),
-        onTap: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => MapPage()));
-        },
-        onLongPress: (){
-          // do something else
-        },
-        //selected: true,
-        trailing: Icon(Icons.keyboard_arrow_right),
+
+      return YourReviewsListItem (
+        name: user.getReview(index).pin.name,
+        date: user.getReview(index).date,
+        comment: user.getReview(index).content,
+
       );
+
     },
   );
 
 }
+
+//title: Text(user.getReview(index).pin.name),
+//subtitle: Text(user.getReview(index).date.day.toString() + "/" + user.getReview(index).date.month.toString() +
+//"/"+ user.getReview(index).date.year.toString() + " \n " + user.getReview(index).content),
