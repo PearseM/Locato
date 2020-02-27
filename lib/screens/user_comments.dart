@@ -1,4 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/map.dart';
 
 class UserCommentsPage extends StatelessWidget {
@@ -32,10 +37,63 @@ class UserCommentsPage extends StatelessWidget {
 class BodyLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return _myListView(context);
+    return ReviewListView();
+  }
+}
+class ReviewListView extends StatefulWidget {
+  @override
+  _ReviewListViewState createState() => _ReviewListViewState();
+}
+
+class _ReviewListViewState extends State<ReviewListView> {
+  final Set<Review> _userReviews = Set();
+  Account _user;
+
+  @override
+  void initState() {
+    FirebaseAuth.instance.currentUser().then((user) {
+      setState(() {
+        _user = Account(user.uid);
+      });
+    });
+    Database.reviewsByUser(_user).listen((snapshot) {
+      List<DocumentChange> docs = snapshot.documentChanges;
+      docs.forEach((doc) {
+        //Review review = Review.fromMap(doc.document.data);
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      separatorBuilder: (context, index) => Divider(
+        color: Colors.black,
+      ),
+      itemCount: _userReviews.length,
+      itemBuilder: (context, index) {
+        Review review = _userReviews.elementAt(index);
+        return ListTile(
+          title: Text(review.pin.name),
+          subtitle: Text(review.timestamp.toString() + " - " + review.body),
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => MapPage()));
+          },
+          onLongPress: (){
+            // do something else
+          },
+          //selected: true,
+          trailing: Icon(Icons.keyboard_arrow_right),
+        );
+      },
+    );
   }
 }
 
+
+/*
 Widget _myListView(BuildContext context) {
 
   // backing data
@@ -55,12 +113,14 @@ Widget _myListView(BuildContext context) {
   '11:30', '11:31', '11:32', '11:33', '11:34', '11:35', '11:36', '11:37', '11:38', '11:39',
     '11:40', '11:41', '11:42', '11:43', '11:44'];
 
+  final Set<Review> _userReviews = Set();
+
 
   return ListView.separated(
     separatorBuilder: (context, index) => Divider(
       color: Colors.black,
     ),
-    itemCount: userPins.length,
+    itemCount: _userReviews.length,
     itemBuilder: (context, index) {
       return ListTile(
         title: Text(userPins[index]),
@@ -78,4 +138,4 @@ Widget _myListView(BuildContext context) {
     },
   );
 
-}
+}*/
