@@ -60,7 +60,7 @@ class _BodyLayoutState extends State<BodyLayout> {
             itemBuilder: (context, index) {
               Review review = snapshot.data.elementAt(index);
               return YourReviewsListItem(
-                name: "Pin", //review.pin.name, TODO FIX PIN
+                name: review.pin.name,
                 date: review.timestamp,
                 comment: review.body,
               );

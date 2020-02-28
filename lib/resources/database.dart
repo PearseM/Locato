@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
@@ -82,15 +84,17 @@ class Database {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
-        .snapshots().map((querySnapshot) {
+        .snapshots().asyncMap((querySnapshot) async {
+          Completer<List<Review>> reviewsCompleter = new Completer<List<Review>>();
           List<Review> reviews = [];
-          querySnapshot.documents.forEach((documentSnapshot) {
+          for (DocumentSnapshot documentSnapshot in  querySnapshot.documents) {
             Map<String, dynamic> reviewMap = documentSnapshot.data;
             Review review = Review.fromMap(documentSnapshot.documentID, reviewMap);
-            //review.pin = await getPinByID(reviewMap["pinID"]);
+            review.pin = await getPinByID(reviewMap["pinID"]);
             reviews.add(review);
-          });
-          return reviews;
+          }
+          reviewsCompleter.complete(reviews);
+          return reviewsCompleter.future;
     });
   }
 
