@@ -63,6 +63,7 @@ class _BodyLayoutState extends State<BodyLayout> {
                 name: review.pin.name,
                 date: review.timestamp,
                 comment: review.body,
+                location: review.pin.location,
               );
             },
           );

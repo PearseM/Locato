@@ -14,6 +14,13 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
+  final CameraPosition currentMapPosition;
+
+  MapPage({LatLng currentMapPosition})
+      : this.currentMapPosition = (currentMapPosition == null)
+            ? null
+            : CameraPosition(target: currentMapPosition, zoom: 14.4746);
+
   @override
   State<MapPage> createState() => MapPageState();
 }
@@ -124,8 +131,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showDrawer = false;
 
     mapOverlap = EdgeInsets.zero;
-    currentMapPosition =
-        CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+    currentMapPosition = (widget.currentMapPosition == null)
+        ? CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746)
+        : widget.currentMapPosition;
 
     formKey = GlobalKey<FormState>();
 
