@@ -78,10 +78,29 @@ class Database {
         ));
   }
 
-  static Stream<QuerySnapshot> reviewsByUser(Account account) {
+  static Stream<List<Review>> reviewsByUser(Account account) {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
-        .snapshots();
+        .snapshots().map((querySnapshot) {
+          List<Review> reviews = [];
+          querySnapshot.documents.forEach((documentSnapshot) {
+            Map<String, dynamic> reviewMap = documentSnapshot.data;
+            Review review = Review.fromMap(documentSnapshot.documentID, reviewMap);
+            //review.pin = await getPinByID(reviewMap["pinID"]);
+            reviews.add(review);
+          });
+          return reviews;
+    });
+  }
+
+  static Future<Pin> getPinByID(String pinID) async {
+    QuerySnapshot snapshot = await Firestore.instance
+        .collection("pins")
+        .where(FieldPath.documentId, isEqualTo: pinID)
+        .snapshots()
+        .first;
+    return Pin.fromMap(
+        pinID, snapshot.documents.first.data, await getFirstReview(pinID));
   }
 }

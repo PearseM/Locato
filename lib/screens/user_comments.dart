@@ -29,95 +29,45 @@ class UserCommentsPage extends StatelessWidget {
         body: BodyLayout(),
       ),
     );
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: Text("Your reviews"),
-//      ),
-//    );
   }
 }
 
-class BodyLayout extends StatelessWidget {
+class BodyLayout extends StatefulWidget {
+  @override
+  _BodyLayoutState createState() => _BodyLayoutState();
+}
+
+class _BodyLayoutState extends State<BodyLayout> {
   @override
   Widget build(BuildContext context) {
-    return _myListView(context);
-  }
-}
-class ReviewListView extends StatefulWidget {
-  @override
-  _ReviewListViewState createState() => _ReviewListViewState();
-}
-
-class _ReviewListViewState extends State<ReviewListView> {
-  final Set<Review> _userReviews = Set();
-  Account _user;
-
-  @override
-  void initState() {
-    FirebaseAuth.instance.currentUser().then((user) {
-      setState(() {
-        _user = Account(user.uid);
-      });
-    });
-    Database.reviewsByUser(_user).listen((snapshot) {
-      List<DocumentChange> docs = snapshot.documentChanges;
-      docs.forEach((doc) {
-        //Review review = Review.fromMap(doc.document.data);
-      });
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-      separatorBuilder: (context, index) => Divider(
-        color: Colors.black,
-      ),
-      itemCount: _userReviews.length,
-      itemBuilder: (context, index) {
-        Review review = _userReviews.elementAt(index);
-        return ListTile(
-          title: Text(review.pin.name),
-          subtitle: Text(review.timestamp.toString() + " - " + review.body),
-          onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => MapPage()));
-          },
-          onLongPress: (){
-            // do something else
-          },
-          //selected: true,
-          trailing: Icon(Icons.keyboard_arrow_right),
-        );
+    return StreamBuilder<List<Review>>(
+      stream: Account.getReviewsForUser(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: Text("No comments available"),
+          );
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        } else {
+          return ListView.separated(
+            separatorBuilder: (context, index) => Divider(
+              color: Colors.black,
+            ),
+            itemCount: snapshot.data.length,
+            itemBuilder: (context, index) {
+              Review review = snapshot.data.elementAt(index);
+              return YourReviewsListItem(
+                name: "Pin", //review.pin.name, TODO FIX PIN
+                date: review.timestamp,
+                comment: review.body,
+              );
+            },
+          );
+        }
       },
     );
   }
 }
-
-Widget _myListView(BuildContext context) {
-  Account account = Account(null);
-  var location = new LatLng(52.518611, 13.408056);
-  for (int i = 0; i < 25; i++) {
-    Review review = Review(null, account, "Comment 1", DateTime.now(), 0);
-    Pin pin = Pin(null, location, account, "Pin 1", review);
-    account.addReview(review);
-  }
-
-  return ListView.separated(
-    separatorBuilder: (context, index) => Divider(
-      color: Colors.black,
-    ),
-    itemCount: 14,
-    itemBuilder: (context, index) {
-      Review review = account.reviews[index];
-
-      return YourReviewsListItem(
-        name: review.pin.name,
-        date: review.timestamp,
-        comment: review.body,
-      );
-    },
-  );
-}
-

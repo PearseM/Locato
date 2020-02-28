@@ -37,18 +37,21 @@ class Pin {
   }
 
   Set<Category> get categories => _categories;
+
   void addCategory(Category value) {
     _categories.add(value);
     // TODO: update DB
   }
 
   Set<Review> get reviews => _reviews;
+
   void addReview(Review review) {
     _reviews.add(review);
     review.pin = this;
   }
 
   int get visitorCount => _visitorCount;
+
   void incVisitorCount() {
     _visitorCount++;
     // TODO: update DB
@@ -75,12 +78,22 @@ class Pin {
     return pin;
   }
 
-  static Map<String, dynamic> newPinMap(String name, LatLng location, Account author) {
+  static Map<String, dynamic> newPinMap(
+      String name, LatLng location, Account author) {
     Map<String, dynamic> pin = Map();
     pin["name"] = name;
     pin["location"] = GeoPoint(location.latitude, location.longitude);
     pin["visitorCount"] = 0;
     pin["author"] = author.id;
     return pin;
+  }
+
+  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review) {
+    return Pin(
+        id,
+        LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
+        Account(pinMap["author"]),
+        pinMap["name"],
+        review);//TODO think about this
   }
 }

@@ -113,6 +113,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    FirebaseAuth.instance.currentUser().then((user) {
+      Account.currentAccount = Account.fromFirebaseUser(user);
+    });
+
     drawerAnimator = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 150),

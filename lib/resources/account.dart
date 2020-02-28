@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 
 class Account {
+  static Account currentAccount;
   final String id;
 
   String _userName;
@@ -62,5 +65,17 @@ class Account {
   void addHelpful(Review review) {
     _helpful.add(review);
     // TODO: update DB
+  }
+
+  static Stream<List<Review>> getReviewsForUser() {
+    return Database.reviewsByUser(currentAccount);
+        /*.listen((onData) {
+      onData.documentChanges.forEach((change) {
+        DocumentSnapshot reviewSnapshot = change.document;
+        reviews.add(
+            Review.fromMap(reviewSnapshot.documentID, reviewSnapshot.data));
+      });
+    });
+    return reviews;*/
   }
 }
