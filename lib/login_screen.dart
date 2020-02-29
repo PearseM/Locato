@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -84,13 +85,15 @@ class LoginScreenState extends State<LoginScreen> {
             new OutlineButton(
               splashColor: Colors.grey,
               onPressed: () {
-                SignIn().signInWithGoogle().whenComplete(() {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MapPage()
-                      )
-                  );
+                SignIn().signInWithGoogle().then((user) {
+                  if (user != null) {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MapPage()
+                        )
+                    );
+                  }
                 });
               },
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
