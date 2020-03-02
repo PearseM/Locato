@@ -15,6 +15,8 @@ enum Category {
 }
 
 class Pin {
+  final GlobalKey<FormState> _formKey;
+
   final String id;
   final LatLng location;
 
@@ -27,12 +29,13 @@ class Pin {
   int _visitorCount = 0;
 
   Pin(
-    this.id,
-    this.location,
-    this.author,
-    this.name,
-    Review review,
-  ) {
+      this._formKey,
+      this.id,
+      this.location,
+      this.author,
+      this.name,
+      Review review,
+      ) {
     addReview(review);
   }
 
@@ -62,7 +65,7 @@ class Pin {
       onTap: () => showModalBottomSheet(
         isScrollControlled: true,
         context: context,
-        builder: (_) => PinInfoDrawer(this),
+        builder: (_) => PinInfoDrawer(_formKey, this),
       ),
     );
   }

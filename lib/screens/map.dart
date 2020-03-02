@@ -56,6 +56,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   /// displayed. The pin will also be added to the database
   void createPin(CameraPosition location, String name, Review review) {
     Pin pin = Pin(
+      formKey,
       pins.length.toString(),
       location.target,
       null,
@@ -83,6 +84,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         Map<String, dynamic> document = documentChange.document.data;
         Review review = Review("0", Account("0"), "Review", DateTime.now());
         Pin pin = Pin(
+          formKey,
           documentChange.document.documentID,
           LatLng(
               document["location"].latitude,

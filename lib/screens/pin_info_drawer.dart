@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
+
+import 'comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
+  final GlobalKey<FormState> _formKey;
   final Pin pin;
 
-  PinInfoDrawer(this.pin);
+  PinInfoDrawer(this._formKey, this.pin);
 
   @override
   Widget build(BuildContext context) {
@@ -18,36 +22,51 @@ class PinInfoDrawer extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  color: Theme.of(context).accentColor,
-                  child: Text(
-                    pin.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .title
-                        .copyWith(color: Colors.white),
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    color: Theme.of(context).accentColor,
+                    child: Text(
+                      pin.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .title
+                          .copyWith(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
-            ]
+              ]
           ),
           Expanded(
             child: Stack(children: [
               ListView.separated(
                 controller: scrollController,
-                itemCount: pin.reviews.length * 25,
+                itemCount: pin.reviews.length,
                 separatorBuilder: (_, i) => Divider(),
-                itemBuilder: (_, i) => ReviewItem(pin.reviews[0]),
+                itemBuilder: (_, i) {
+                  Review review = pin.reviews[i];
+
+                  return PinListItem(
+                    name: review.pin.name,
+                    date: review.timestamp,
+                    comment: review.body,
+                  );
+                },
               ),
               Align(
                 alignment: Alignment.bottomRight,
                 child: Padding(
                   padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
                   child: RaisedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => [
+                      //Navigator.of(context).pop(),
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (_) => NewReviewForm(_formKey, pin),
+                      ),
+                    ],
                     icon: Icon(Icons.add),
                     shape: StadiumBorder(),
                     color: Theme.of(context).accentColor,
