@@ -10,4 +10,8 @@ class Database {
   static void addPin(Pin pin) {
     Firestore.instance.collection("pins").add(pin.asMap());
   }
+
+  static void updatePin(Pin pin) {
+    Firestore.instance.collection("pins").document(pin.id).updateData(pin.asMap());
+  }
 }

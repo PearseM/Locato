@@ -48,7 +48,7 @@ class PinInfoDrawer extends StatelessWidget {
                   Review review = pin.reviews[i];
 
                   return PinListItem(
-                    name: review.pin.name,
+                    name: 'TempName',
                     date: review.timestamp,
                     comment: review.body,
                   );

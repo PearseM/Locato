@@ -76,9 +76,7 @@ class PinListItem extends ListTile{
           ),
         ],
       ),
-
     );
-
   }
 }
 class CustomListItem extends ListTile {

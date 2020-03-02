@@ -46,7 +46,7 @@ class NewReviewForm extends StatelessWidget {
                           onPressed: () {
                             Review review = Review(null, null, this.bodyController.text, DateTime.now());
                             _pin.addReview(review);
-                            Database.addPin(_pin);
+                            Database.updatePin(_pin);
                             Navigator.of(context).pop();
                           },
                         ),
