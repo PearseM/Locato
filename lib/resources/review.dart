@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/pin.dart';
 
 class Review {
-  final String id;
+  String id;
 
   final Account author;
   final DateTime timestamp;
@@ -13,17 +14,52 @@ class Review {
 
   int _flagCount;
 
-  Review(this.id, this.author, this._body, this.timestamp);
+  Review(this.id, this.author, this._body, this.timestamp, this._flagCount);
 
   String get body => _body;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(other) {
+    return id == other.id;
+  }
+
   void updateBody(String value) {
     _body = value;
     // TODO: update DB
   }
 
   int get flagCount => _flagCount;
+
   void incFlagCount() {
     _flagCount++;
     // TODO: update DB
+  }
+
+  Map<String, dynamic> asMap() {
+    Map<String, dynamic> review = Map();
+    review["author"] = author.id;
+    review["dateAdded"] = Timestamp.fromDate(timestamp);
+    review["content"] = _body;
+    review["flagCount"] = _flagCount;
+    return review;
+  }
+
+  static Map<String, dynamic> newReviewMap(
+      Account author, String content, String pinID) {
+    Map<String, dynamic> review = Map();
+    review["author"] = author.id;
+    review["dateAdded"] = Timestamp.now();
+    review["content"] = content;
+    review["flagCount"] = 0;
+    review["pinID"] = pinID;
+    return review;
+  }
+
+  static Review fromMap(String id, Map<String, dynamic> data) {
+    return Review(id, Account(data["author"]), data["content"],
+        data["dateAdded"].toDate(), data["flagCount"]);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/login_screen.dart';
+import 'package:integrated_project/screens/map.dart';
 
 void main() => runApp(MyApp());
 

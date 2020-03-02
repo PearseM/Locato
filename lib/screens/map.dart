@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,12 +7,22 @@ import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
+import 'package:integrated_project/screens/pin_info_drawer.dart';
+import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
+  static const kDefaultZoom = 14.4746;
+  final CameraPosition currentMapPosition;
+
+  MapPage({LatLng currentMapPosition})
+      : this.currentMapPosition = (currentMapPosition == null)
+            ? null
+            : CameraPosition(target: currentMapPosition, zoom: kDefaultZoom);
+
   @override
   State<MapPage> createState() => MapPageState();
 }
@@ -34,6 +45,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   FloatingActionButton fabConfirmPin;
   FloatingActionButton currentFab;
 
+  //User instance
+  FirebaseUser _user;
+  Account _account;
+
   void openDrawer() {
     setState(() {
       drawerAnimator.forward();
@@ -50,22 +65,32 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
+  ///Opens the pin info drawer for this pin.
+  void updateMapPosition(Pin pin) {
+    //TODO make this actually move the camera position on the map
+    CameraPosition newPosition =
+        CameraPosition(target: pin.location, zoom: MapPage.kDefaultZoom);
+    setState(() {
+      currentMapPosition = newPosition;
+    });
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => PinInfoDrawer(pin),
+    );
+  }
+
   /// Creates a new pin and displays it on the map.
   ///
   /// Requires the location of the pin, a name and the first review to be
   /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, Review review) {
-    Pin pin = Pin(
-      pins.length.toString(),
-      location.target,
-      null,
-      name,
-      review,
-    );
+  void createPin(
+      CameraPosition location, String name, String reviewContent) async {
+    Pin pin =
+        await Database.newPin(location.target, name, reviewContent, _account);
     setState(() {
       pins.add(pin);
     });
-    Database.addPin(pin);
   }
 
   void barHeightChange(double height) {
@@ -75,26 +100,44 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
+  /*
   /// Fetches the pins from the database and adds them to the map.
   void queryPins() {
     Stream<QuerySnapshot> query = Database.getPins();
     query.listen((data) {
-      data.documentChanges.forEach((documentChange) {
+      for (DocumentChange documentChange in data.documentChanges) {
         Map<String, dynamic> document = documentChange.document.data;
-        Review review = Review("0", Account("0"), "Review", DateTime.now());
+        Review review =
+            Database.getFirstReview(documentChange.document.documentID);
         Pin pin = Pin(
           documentChange.document.documentID,
           LatLng(
-              document["location"].latitude,
-              document["location"].longitude,
+            document["location"].latitude,
+            document["location"].longitude,
           ),
-          Account("0"),
+          Account(document["author"]),
           document["name"],
           review,
-        ); //TODO Add review
+        );
         setState(() {
           pins.add(pin);
         });
+        Database.getReviewsForPin(documentChange.document.documentID)
+            .listen((data) {
+          data.documentChanges.removeAt(0);
+          data.documentChanges.forEach((change) {
+            pin.addReview(Review.fromMap(
+                change.document.documentID, change.document.data));
+          });
+        });
+      }
+    });
+  }*/
+
+  void queryPins() {
+    Database.getPins().listen((pinsList) {
+      setState(() {
+        pins.addAll(pinsList);
       });
     });
   }
@@ -103,6 +146,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    FirebaseAuth.instance.currentUser().then((user) {
+      Account.currentAccount = Account.fromFirebaseUser(user);
+    });
+
     drawerAnimator = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 150),
@@ -110,8 +157,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showDrawer = false;
 
     mapOverlap = EdgeInsets.zero;
-    currentMapPosition =
-        CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+    currentMapPosition = (widget.currentMapPosition == null)
+        ? CameraPosition(
+            target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom)
+        : widget.currentMapPosition;
 
     formKey = GlobalKey<FormState>();
 
@@ -126,9 +175,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           NewPinForm form = formKey.currentContext
               .findAncestorWidgetOfExactType<NewPinForm>();
           String pinName = form.nameController.text;
-          Review review =
-              Review(null, null, form.bodyController.text, DateTime.now());
-          createPin(currentMapPosition, pinName, review);
+          createPin(currentMapPosition, pinName, form.bodyController.text);
           closeDrawer();
         }
       },
@@ -137,6 +184,14 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     );
 
     currentFab = fabAddPin;
+
+    SignIn.auth.currentUser().then((user) {
+      Account account = Account.fromFirebaseUser(user);
+      setState(() {
+        _user = user;
+        _account = account;
+      });
+    });
   }
 
   @override
@@ -163,6 +218,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
         drawerAnimator,
         showDrawer,
+        updateMapPosition,
       ),
     );
   }
@@ -199,8 +255,8 @@ class MapBody extends StatefulWidget {
 }
 
 class MapBodyState extends State<MapBody> {
-  static const CameraPosition uobPosition =
-      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+  static const CameraPosition uobPosition = CameraPosition(
+      target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom);
 
   bool locationEnabled;
 
@@ -304,6 +360,7 @@ class BottomBar extends StatelessWidget {
   final Function(double) barHeightCallback;
   final Animation<double> openAnimation;
   final bool drawerOpen;
+  final Function(Pin) updateCameraPosition;
 
   BottomBar(
     this.formKey,
@@ -311,6 +368,7 @@ class BottomBar extends StatelessWidget {
     this.barHeightCallback,
     this.openAnimation,
     this.drawerOpen,
+    this.updateCameraPosition,
   );
 
   @override
@@ -333,6 +391,7 @@ class BottomBar extends StatelessWidget {
           BottomBarNav(
             closeBarCallback,
             drawerOpen,
+            updateCameraPosition,
           ),
           Visibility(
             // giving bottom sheet visibility hides keyboard when its closed
@@ -355,16 +414,18 @@ class BottomBar extends StatelessWidget {
 class BottomBarNav extends StatelessWidget {
   final VoidCallback closeBarCallback;
   final bool drawerOpen;
+  final Function(Pin) updateMapPosition;
 
   BottomBarNav(
     this.closeBarCallback,
     this.drawerOpen,
+    this.updateMapPosition,
   );
 
   @override
   Widget build(BuildContext context) {
     Set<Pin> pins = context.findAncestorStateOfType<MapPageState>().pins;
-    
+
     return Row(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -386,8 +447,10 @@ class BottomBarNav extends StatelessWidget {
         ),
         Spacer(),
         IconButton(
-          onPressed: () {
-            showSearch(context: context, delegate: MapSearchDelegate(pins));
+          onPressed: () async {
+            Pin pin = await showSearch(
+                context: context, delegate: MapSearchDelegate(pins));
+            updateMapPosition(pin);
           },
           icon: Icon(Icons.search),
         ),
