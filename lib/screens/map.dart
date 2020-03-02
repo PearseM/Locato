@@ -7,6 +7,7 @@ import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
+import 'package:integrated_project/screens/pin_info_drawer.dart';
 import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
@@ -14,12 +15,13 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
+  static const kDefaultZoom = 14.4746;
   final CameraPosition currentMapPosition;
 
   MapPage({LatLng currentMapPosition})
       : this.currentMapPosition = (currentMapPosition == null)
             ? null
-            : CameraPosition(target: currentMapPosition, zoom: 14.4746);
+            : CameraPosition(target: currentMapPosition, zoom: kDefaultZoom);
 
   @override
   State<MapPage> createState() => MapPageState();
@@ -63,6 +65,21 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
+  ///Opens the pin info drawer for this pin.
+  void updateMapPosition(Pin pin) {
+    //TODO make this actually move the camera position on the map
+    CameraPosition newPosition =
+        CameraPosition(target: pin.location, zoom: MapPage.kDefaultZoom);
+    setState(() {
+      currentMapPosition = newPosition;
+    });
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => PinInfoDrawer(pin),
+    );
+  }
+
   /// Creates a new pin and displays it on the map.
   ///
   /// Requires the location of the pin, a name and the first review to be
@@ -83,14 +100,15 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
+  /*
   /// Fetches the pins from the database and adds them to the map.
   void queryPins() {
     Stream<QuerySnapshot> query = Database.getPins();
     query.listen((data) {
-      data.documentChanges.forEach((documentChange) async {
+      for (DocumentChange documentChange in data.documentChanges) {
         Map<String, dynamic> document = documentChange.document.data;
         Review review =
-            await Database.getFirstReview(documentChange.document.documentID);
+            Database.getFirstReview(documentChange.document.documentID);
         Pin pin = Pin(
           documentChange.document.documentID,
           LatLng(
@@ -101,6 +119,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           document["name"],
           review,
         );
+        setState(() {
+          pins.add(pin);
+        });
         Database.getReviewsForPin(documentChange.document.documentID)
             .listen((data) {
           data.documentChanges.removeAt(0);
@@ -109,9 +130,14 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
                 change.document.documentID, change.document.data));
           });
         });
-        setState(() {
-          pins.add(pin);
-        });
+      }
+    });
+  }*/
+
+  void queryPins() {
+    Database.getPins().listen((pinsList) {
+      setState(() {
+        pins.addAll(pinsList);
       });
     });
   }
@@ -132,7 +158,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
     mapOverlap = EdgeInsets.zero;
     currentMapPosition = (widget.currentMapPosition == null)
-        ? CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746)
+        ? CameraPosition(
+            target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom)
         : widget.currentMapPosition;
 
     formKey = GlobalKey<FormState>();
@@ -191,6 +218,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
         drawerAnimator,
         showDrawer,
+        updateMapPosition,
       ),
     );
   }
@@ -227,8 +255,8 @@ class MapBody extends StatefulWidget {
 }
 
 class MapBodyState extends State<MapBody> {
-  static const CameraPosition uobPosition =
-      CameraPosition(target: LatLng(51.3782261, -2.3285874), zoom: 14.4746);
+  static const CameraPosition uobPosition = CameraPosition(
+      target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom);
 
   bool locationEnabled;
 
@@ -332,6 +360,7 @@ class BottomBar extends StatelessWidget {
   final Function(double) barHeightCallback;
   final Animation<double> openAnimation;
   final bool drawerOpen;
+  final Function(Pin) updateCameraPosition;
 
   BottomBar(
     this.formKey,
@@ -339,6 +368,7 @@ class BottomBar extends StatelessWidget {
     this.barHeightCallback,
     this.openAnimation,
     this.drawerOpen,
+    this.updateCameraPosition,
   );
 
   @override
@@ -361,6 +391,7 @@ class BottomBar extends StatelessWidget {
           BottomBarNav(
             closeBarCallback,
             drawerOpen,
+            updateCameraPosition,
           ),
           Visibility(
             // giving bottom sheet visibility hides keyboard when its closed
@@ -383,10 +414,12 @@ class BottomBar extends StatelessWidget {
 class BottomBarNav extends StatelessWidget {
   final VoidCallback closeBarCallback;
   final bool drawerOpen;
+  final Function(Pin) updateMapPosition;
 
   BottomBarNav(
     this.closeBarCallback,
     this.drawerOpen,
+    this.updateMapPosition,
   );
 
   @override
@@ -414,8 +447,10 @@ class BottomBarNav extends StatelessWidget {
         ),
         Spacer(),
         IconButton(
-          onPressed: () {
-            showSearch(context: context, delegate: MapSearchDelegate(pins));
+          onPressed: () async {
+            Pin pin = await showSearch(
+                context: context, delegate: MapSearchDelegate(pins));
+            updateMapPosition(pin);
           },
           icon: Icon(Icons.search),
         ),

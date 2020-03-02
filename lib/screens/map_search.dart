@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:edit_distance/edit_distance.dart';
 
 import 'package:integrated_project/resources/pin.dart';
 
-class MapSearchDelegate extends SearchDelegate {
+class MapSearchDelegate extends SearchDelegate<Pin> {
+  final Levenshtein distance = Levenshtein();
   final Set<Pin> pins;
 
   MapSearchDelegate(this.pins);
@@ -42,14 +44,19 @@ class MapSearchDelegate extends SearchDelegate {
       padding: EdgeInsets.all(8),
       itemCount: results.length,
       itemBuilder: (context, i) {
-        return Container(
-          height: 50,
-          child: Align(
-            child: Text(
-              results[i].name,
-              textScaleFactor: 1.2,
+        return GestureDetector(
+          onTap: () {
+            this.close(context, results[i]);
+          },
+          child: Container(
+            height: 50,
+            child: Align(
+              child: Text(
+                results[i].name,
+                textScaleFactor: 1.2,
+              ),
+              alignment: Alignment.centerLeft,
             ),
-            alignment: Alignment.centerLeft,
           ),
         );
       },
@@ -61,6 +68,18 @@ class MapSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    List<Pin> suggestions = List<Pin>();
+
+    for (Pin pin in pins) {
+      /* a much better algorithm would look for terms in the query separately
+       * using a fuzzy-match and rank results based on how close they are to terms.
+       */
+      // if pin's name contains query, add as result
+      if (pin.name.contains(RegExp(query, caseSensitive: false)) ||
+          distance.distance(pin.name, query) < 4) {
+        suggestions.add(pin);
+      }
+    }
     return Column(); // TODO: add suggestions
   }
 }
