@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 
@@ -67,8 +68,8 @@ class Account {
     // TODO: update DB
   }
 
-  static Stream<List<Review>> getReviewsForUser() {
-    return Database.reviewsByUser(currentAccount);
+  static Stream<List<Review>> getReviewsForUser(BuildContext context) {
+    return Database.reviewsByUser(currentAccount, context);
         /*.listen((onData) {
       onData.documentChanges.forEach((change) {
         DocumentSnapshot reviewSnapshot = change.document;

@@ -76,7 +76,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      builder: (_) => PinInfoDrawer(pin),
+      builder: (_) => PinInfoDrawer(formKey, pin),
     );
   }
 
@@ -87,7 +87,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void createPin(
       CameraPosition location, String name, String reviewContent) async {
     Pin pin =
-        await Database.newPin(location.target, name, reviewContent, _account);
+        await Database.newPin(location.target, name, reviewContent, _account, context);
     setState(() {
       pins.add(pin);
     });
@@ -135,7 +135,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   }*/
 
   void queryPins() {
-    Database.getPins().listen((pinsList) {
+    Database.getPins(context).listen((pinsList) {
       setState(() {
         pins.addAll(pinsList);
       });
@@ -145,6 +145,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    Pin.formKey = formKey;
 
     FirebaseAuth.instance.currentUser().then((user) {
       Account.currentAccount = Account.fromFirebaseUser(user);
@@ -314,7 +316,7 @@ class MapBodyState extends State<MapBody> {
   Widget build(BuildContext context) {
     Set<Marker> markers = Set<Marker>();
     for (Pin pin in widget.pins) {
-      markers.add(pin.createMarker(context));
+      markers.add(pin.marker);
     }
 
     return Stack(
