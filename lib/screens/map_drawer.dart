@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/screens/account.dart';
 import 'package:integrated_project/screens/user_comments.dart';
+import 'package:integrated_project/screens/flagged_comments.dart';
 
 class MapDrawer extends StatelessWidget {
   @override
@@ -26,6 +27,13 @@ class MapDrawer extends StatelessWidget {
             onTap: () {
               Navigator.push(context,
                   MaterialPageRoute(builder: (context) => AccountPage()));
+            },
+          ),
+          ListTile(
+            title: Text("Flagged Reviews"),
+            onTap: () {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => FlaggedCommentsPage()));
             },
           ),
         ],

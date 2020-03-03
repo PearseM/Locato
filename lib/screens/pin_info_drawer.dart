@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final Pin pin;
@@ -37,10 +38,23 @@ class PinInfoDrawer extends StatelessWidget {
           Expanded(
             child: Stack(children: [
               ListView.separated(
-                controller: scrollController,
+                separatorBuilder: (context, index) => Divider(
+                  color: Colors.black,
+                ),
                 itemCount: pin.reviews.length * 25,
-                separatorBuilder: (_, i) => Divider(),
-                itemBuilder: (_, i) => ReviewItem(pin.reviews[0]),
+                itemBuilder: (context, index) {
+                  Review review = pin.reviews[0];
+
+                  return PinListItem(
+                    name: review.pin.name,
+                    date: review.timestamp,
+                    comment: review.body,
+                  );
+                },
+                //controller: scrollController,
+                //itemCount: pin.reviews.length * 25,
+                //separatorBuilder: (_, i) => Divider(),
+                //itemBuilder: (_, i) => ReviewItem(pin.reviews[0]),
               ),
               Align(
                 alignment: Alignment.bottomRight,
