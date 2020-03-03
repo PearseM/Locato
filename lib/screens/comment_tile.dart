@@ -16,10 +16,10 @@ class YourReviewsListItem extends ListTile {
   final LatLng location;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
+  Widget build (BuildContext context) {
+    return Padding (
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row(
+      child: Row (
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -35,7 +35,6 @@ class YourReviewsListItem extends ListTile {
             icon: Icon(Icons.keyboard_arrow_right),
             iconSize: 40.0,
             color: Color.fromRGBO(0, 0, 0, 0.3),
-            tooltip: 'Increase volume by 10',
             onPressed: () {
               Navigator.push(
                   context,
@@ -63,16 +62,16 @@ class PinListItem extends ListTile {
   final String comment;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
+  Widget build (BuildContext context) {
+    return Padding (
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row(
+      child: Row (
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Expanded(
             flex: 3,
-            child: CustomListItem(
+            child: PinCustomListItem(
               name: name,
               date: date,
               comment: comment,
@@ -80,6 +79,51 @@ class PinListItem extends ListTile {
           ),
         ],
       ),
+    );
+
+  }
+}
+class PinCustomListItem extends ListTile {
+  const PinCustomListItem({
+    this.name,
+    this.date,
+    this.comment,
+  });
+
+  final bool enabled = true;
+  final String name;
+  final DateTime date;
+  final String comment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              comment,
+              style: DefaultTextStyle.of(context).style.apply(fontSizeFactor: 1.1),
+            ),
+            Text(name),
+            Text(
+              date.day.toString().padLeft(2, '0') + "/" + date.month.toString().padLeft(2, '0') + "/" +date.year.toString()
+                  + " " + date.hour.toString().padLeft(2, '0') + ":" + date.minute.toString().padLeft(2, '0'),
+              style: TextStyle(color: Colors.black.withOpacity(0.4)),
+            ),
+          ]
+      ),
+//      onTap: () {
+//        Navigator.push(context,
+//            MaterialPageRoute(builder: (context) => MapPage()));
+//      },
+//      onLongPress: (){
+//        // do something else
+//      },
+      //selected: true,
+      //trailing: Icon(Icons.keyboard_arrow_right),
     );
   }
 }
@@ -111,18 +155,12 @@ class CustomListItem extends ListTile {
             ),
             Text(comment),
             Text(
-              date.day.toString() +
-                  "/" +
-                  date.month.toString() +
-                  "/" +
-                  date.year.toString() +
-                  " " +
-                  date.hour.toString() +
-                  ":" +
-                  date.minute.toString(),
+              date.day.toString().padLeft(2, '0') + "/" + date.month.toString().padLeft(2, '0') + "/" +date.year.toString()
+                  + " " + date.hour.toString().padLeft(2, '0') + ":" + date.minute.toString().padLeft(2, '0'),
               style: TextStyle(color: Colors.black.withOpacity(0.4)),
             ),
-          ]),
+          ]
+      ),
 //      onTap: () {
 //        Navigator.push(context,
 //            MaterialPageRoute(builder: (context) => MapPage()));
@@ -133,5 +171,58 @@ class CustomListItem extends ListTile {
       //selected: true,
       //trailing: Icon(Icons.keyboard_arrow_right),
     );
+  }
+}
+
+class FlaggedReviewsListItem extends ListTile{
+  const FlaggedReviewsListItem({
+    this.name,
+    this.date,
+    this.comment,
+  });
+
+  final String name;
+  final DateTime date;
+  final String comment;
+
+  @override
+  Widget build (BuildContext context) {
+    return Padding (
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+      child: Row (
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
+            flex: 3,
+            child: CustomListItem(
+              name: name,
+              date: date,
+              comment: comment,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.check),
+            iconSize: 40.0,
+            color: Color.fromRGBO(0, 255, 0, 1),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MapPage()));
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.close),
+            iconSize: 40.0,
+            color: Color.fromRGBO(255, 0, 0, 1),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MapPage()));
+            },
+          ),
+        ],
+      ),
+
+    );
+
   }
 }

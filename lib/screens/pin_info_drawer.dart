@@ -5,6 +5,7 @@ import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 
 import 'comment_tile.dart';
+import 'package:integrated_project/screens/comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final GlobalKey<FormState> _formKey;
@@ -22,21 +23,23 @@ class PinInfoDrawer extends StatelessWidget {
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(20),
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  pin.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .title
-                      .copyWith(color: Colors.white),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  color: Theme.of(context).accentColor,
+                  child: Text(
+                    pin.name,
+                    style: Theme.of(context)
+                        .textTheme
+                        .title
+                        .copyWith(color: Colors.white),
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ]
+          ),
           Expanded(
             child: Stack(children: [
               StreamBuilder<List<Review>>(
@@ -52,9 +55,16 @@ class PinInfoDrawer extends StatelessWidget {
                         : ListView.separated(
                             controller: scrollController,
                             itemCount: snapshot.data.length,
-                            separatorBuilder: (_, i) => Divider(),
+                            separatorBuilder: (_, i) => Divider(
+                              color: Colors.black,
+                            ),
                             itemBuilder: (_, i) =>
-                                ReviewItem(snapshot.data.elementAt(i)),
+                              Review review = snapshot.data.elementAt(i);
+                              return PinListItem(
+                              name: review.pin.name,
+                              date: review.timestamp,
+                              comment: review.body,
+                              ),
                           );
                   }
                 },
