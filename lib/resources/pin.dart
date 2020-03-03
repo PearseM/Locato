@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
@@ -20,11 +21,14 @@ class Pin {
 
   final Account author;
   final String name;
+  Marker marker;
 
   Set<Category> _categories = Set<Category>();
   Set<Review> _reviews = Set<Review>();
 
   int _visitorCount = 0;
+
+  static GlobalKey<FormState> formKey;
 
   Pin(
     this.id,
@@ -32,8 +36,11 @@ class Pin {
     this.author,
     this.name,
     Review review,
+    BuildContext context,
   ) {
-    addReview(review);
+    marker = _createMarker(context, this);
+    _reviews.add(review);
+    review.pin = this;
   }
 
   Set<Category> get categories => _categories;
@@ -45,9 +52,11 @@ class Pin {
 
   Set<Review> get reviews => _reviews;
 
+  ///Adds a review to the database
   void addReview(Review review) {
     _reviews.add(review);
     review.pin = this;
+    Database.addReview(review);
   }
 
   int get visitorCount => _visitorCount;
@@ -57,14 +66,14 @@ class Pin {
     // TODO: update DB
   }
 
-  Marker createMarker(BuildContext context) {
+  static Marker _createMarker(BuildContext context, Pin pin) {
     return Marker(
-      markerId: MarkerId(id),
-      position: this.location,
+      markerId: MarkerId(pin.id),
+      position: pin.location,
       onTap: () => showModalBottomSheet(
         isScrollControlled: true,
         context: context,
-        builder: (_) => PinInfoDrawer(this),
+        builder: (_) => PinInfoDrawer(formKey, pin),
       ),
     );
   }
@@ -88,12 +97,13 @@ class Pin {
     return pin;
   }
 
-  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review) {
+  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review, BuildContext context) {
     return Pin(
         id,
         LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
         Account(pinMap["author"]),
         pinMap["name"],
-        review);//TODO think about this
+        review,
+        context); //TODO think about this
   }
 }

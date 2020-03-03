@@ -44,6 +44,7 @@ class Review {
     review["dateAdded"] = Timestamp.fromDate(timestamp);
     review["content"] = _body;
     review["flagCount"] = _flagCount;
+    review["pinID"] = pin.id;
     return review;
   }
 

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
+
+import 'comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
+  final GlobalKey<FormState> _formKey;
   final Pin pin;
 
-  PinInfoDrawer(this.pin);
+  PinInfoDrawer(this._formKey, this.pin);
 
   @override
   Widget build(BuildContext context) {
@@ -17,37 +22,56 @@ class PinInfoDrawer extends StatelessWidget {
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  color: Theme.of(context).accentColor,
-                  child: Text(
-                    pin.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .title
-                        .copyWith(color: Colors.white),
-                  ),
+          Row(children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(20),
+                color: Theme.of(context).accentColor,
+                child: Text(
+                  pin.name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .title
+                      .copyWith(color: Colors.white),
                 ),
               ),
-            ]
-          ),
+            ),
+          ]),
           Expanded(
             child: Stack(children: [
-              ListView.separated(
-                controller: scrollController,
-                itemCount: pin.reviews.length,
-                separatorBuilder: (_, i) => Divider(),
-                itemBuilder: (_, i) => ReviewItem(pin.reviews.elementAt(i)),
+              StreamBuilder<List<Review>>(
+                stream: Database.getReviewsForPin(pin.id),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else {
+                    return (snapshot.data.isEmpty)
+                        ? Center(
+                            child: Text("No reviews"),
+                          )
+                        : ListView.separated(
+                            controller: scrollController,
+                            itemCount: snapshot.data.length,
+                            separatorBuilder: (_, i) => Divider(),
+                            itemBuilder: (_, i) =>
+                                ReviewItem(snapshot.data.elementAt(i)),
+                          );
+                  }
+                },
               ),
               Align(
                 alignment: Alignment.bottomRight,
                 child: Padding(
                   padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
                   child: RaisedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => [
+                      //Navigator.of(context).pop(),
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (_) => NewReviewForm(_formKey, pin),
+                      ),
+                    ],
                     icon: Icon(Icons.add),
                     shape: StadiumBorder(),
                     color: Theme.of(context).accentColor,

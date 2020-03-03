@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,8 +7,11 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 
 class Database {
-  static Stream<List<Pin>> getPins() {
-    return Firestore.instance.collection("pins").snapshots().asyncMap((snapshot) async {
+  static Stream<List<Pin>> getPins(BuildContext context) {
+    return Firestore.instance
+        .collection("pins")
+        .snapshots()
+        .asyncMap((snapshot) async {
       Completer<List<Pin>> pinsListCompleter = Completer<List<Pin>>();
       List<Pin> pins = [];
       for (DocumentSnapshot document in snapshot.documents) {
@@ -23,6 +25,7 @@ class Database {
           Account(document["author"]),
           document["name"],
           firstReview,
+          context,
         );
         pins.add(pin);
       }
@@ -31,6 +34,7 @@ class Database {
     });
   }
 
+  /*
   static void addPin(Pin pin) async {
     //Add the pin to the database
     DocumentReference newPin =
@@ -48,13 +52,23 @@ class Database {
     //Give the initial review its database ID
     pin.reviews.elementAt(0).id = initialReview.documentID;
   }
+   */
 
-  static Stream<QuerySnapshot> getReviewsForPin(String pinID) {
+  static Stream<List<Review>> getReviewsForPin(String pinID) {
     return Firestore.instance
         .collection("reviews")
         .where("pinID", isEqualTo: pinID)
-        .orderBy("dateAdded", descending: true)
-        .snapshots();
+        .snapshots()
+        .map((snapshot) {
+      List<Review> reviews = [];
+      for (DocumentSnapshot document in snapshot.documents) {
+        Review review = Review.fromMap(document.documentID, document.data);
+        reviews.add(review);
+      }
+      reviews.sort((firstReview, secondReview) =>
+          firstReview.timestamp.compareTo((secondReview.timestamp)));
+      return reviews;
+    });
   }
 
   static Future<Review> getFirstReview(String pinID) async {
@@ -74,7 +88,7 @@ class Database {
   }
 
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
-      Account author) async {
+      Account author, BuildContext context) async {
     //Add the pin to the database
     DocumentReference newPin = await Firestore.instance
         .collection("pins")
@@ -89,20 +103,23 @@ class Database {
         await Firestore.instance.collection("reviews").add(initialReviewMap);
 
     return Pin(
-        newPin.documentID,
-        location,
+      newPin.documentID,
+      location,
+      author,
+      name,
+      Review(
+        initialReview.documentID,
         author,
-        name,
-        Review(
-          initialReview.documentID,
-          author,
-          reviewContent,
-          initialReviewMap["dateAdded"].toDate(),
-          0,
-        ));
+        reviewContent,
+        initialReviewMap["dateAdded"].toDate(),
+        0,
+      ),
+      context,
+    );
   }
 
-  static Stream<List<Review>> reviewsByUser(Account account) {
+  static Stream<List<Review>> reviewsByUser(
+      Account account, BuildContext context) {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
@@ -113,7 +130,7 @@ class Database {
       for (DocumentSnapshot documentSnapshot in querySnapshot.documents) {
         Map<String, dynamic> reviewMap = documentSnapshot.data;
         Review review = Review.fromMap(documentSnapshot.documentID, reviewMap);
-        review.pin = await getPinByID(reviewMap["pinID"]);
+        review.pin = await getPinByID(reviewMap["pinID"], context);
         reviews.add(review);
       }
       reviewsCompleter.complete(reviews);
@@ -121,13 +138,19 @@ class Database {
     });
   }
 
-  static Future<Pin> getPinByID(String pinID) async {
+  static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance
         .collection("pins")
         .where(FieldPath.documentId, isEqualTo: pinID)
         .snapshots()
         .first;
-    return Pin.fromMap(
-        pinID, snapshot.documents.first.data, await getFirstReview(pinID));
+    return Pin.fromMap(pinID, snapshot.documents.first.data,
+        await getFirstReview(pinID), context);
+  }
+
+  ///Adds the specified review to the database. The review should already have
+  ///its pinID attribute set.
+  static void addReview(Review review) {
+    Firestore.instance.collection("reviews").add(review.asMap());
   }
 }
