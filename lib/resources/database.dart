@@ -130,4 +130,8 @@ class Database {
     return Pin.fromMap(
         pinID, snapshot.documents.first.data, await getFirstReview(pinID));
   }
+
+  static void updatePin(Pin pin) {
+    Firestore.instance.collection("pins").document(pin.id).updateData(pin.asMap());
+  }
 }

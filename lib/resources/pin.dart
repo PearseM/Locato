@@ -48,6 +48,7 @@ class Pin {
   void addReview(Review review) {
     _reviews.add(review);
     review.pin = this;
+    // TODO: update DB
   }
 
   int get visitorCount => _visitorCount;

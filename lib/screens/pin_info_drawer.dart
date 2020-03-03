@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
+
+import 'comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
+  final GlobalKey<FormState> _formKey;
   final Pin pin;
 
-  PinInfoDrawer(this.pin);
+  PinInfoDrawer(this._formKey, this.pin);
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +22,21 @@ class PinInfoDrawer extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  color: Theme.of(context).accentColor,
-                  child: Text(
-                    pin.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .title
-                        .copyWith(color: Colors.white),
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    color: Theme.of(context).accentColor,
+                    child: Text(
+                      pin.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .title
+                          .copyWith(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
-            ]
+              ]
           ),
           Expanded(
             child: Stack(children: [
@@ -47,7 +51,14 @@ class PinInfoDrawer extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
                   child: RaisedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => [
+                      //Navigator.of(context).pop(),
+                      showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (_) => NewReviewForm(_formKey, pin),
+                      ),
+                    ],
                     icon: Icon(Icons.add),
                     shape: StadiumBorder(),
                     color: Theme.of(context).accentColor,
