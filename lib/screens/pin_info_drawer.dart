@@ -3,8 +3,6 @@ import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
-
-import 'comment_tile.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
 
 class PinInfoDrawer extends StatelessWidget {
@@ -23,23 +21,21 @@ class PinInfoDrawer extends StatelessWidget {
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(20),
-                  color: Theme.of(context).accentColor,
-                  child: Text(
-                    pin.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .title
-                        .copyWith(color: Colors.white),
-                  ),
+          Row(children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.all(20),
+                color: Theme.of(context).accentColor,
+                child: Text(
+                  pin.name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .title
+                      .copyWith(color: Colors.white),
                 ),
               ),
-            ]
-          ),
+            ),
+          ]),
           Expanded(
             child: Stack(children: [
               StreamBuilder<List<Review>>(
@@ -58,13 +54,23 @@ class PinInfoDrawer extends StatelessWidget {
                             separatorBuilder: (_, i) => Divider(
                               color: Colors.black,
                             ),
-                            itemBuilder: (_, i) =>
+                            itemBuilder: (_, i) {
                               Review review = snapshot.data.elementAt(i);
-                              return PinListItem(
-                              name: review.pin.name,
-                              date: review.timestamp,
-                              comment: review.body,
-                              ),
+                              return FutureBuilder(
+                                future: review.author.userName,
+                                builder: (context, nameSnapshot) {
+                                  return PinListItem(
+                                    name: (nameSnapshot.connectionState ==
+                                                ConnectionState.waiting ||
+                                            nameSnapshot.data == null)
+                                        ? "Unknown"
+                                        : nameSnapshot.data,
+                                    date: review.timestamp,
+                                    comment: review.body,
+                                  );
+                                },
+                              );
+                            },
                           );
                   }
                 },

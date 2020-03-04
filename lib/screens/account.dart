@@ -91,8 +91,16 @@ class MyUsernameForm extends StatefulWidget {
 class MyUsernameFormState extends State<MyUsernameForm> {
   final TextEditingController usernameController = new TextEditingController();
   final formKey = GlobalKey<FormState>();
-  String currentUsername = getCurrentUsername();
+  String currentUsername = "Unknown";
 
+  @override
+  void initState() async {
+    String name = await Account.currentAccount.userName;
+    setState(() {
+      currentUsername = name;
+    });
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -221,9 +229,4 @@ void updateUsername(String newName) {
   FirebaseAuth.instance
       .currentUser()
       .then((user) => user.updateProfile(newInfo));
-}
-
-//For getting the username from the database.
-String getCurrentUsername() {
-  return Account.currentAccount.userName;
 }

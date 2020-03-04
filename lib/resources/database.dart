@@ -34,26 +34,6 @@ class Database {
     });
   }
 
-  /*
-  static void addPin(Pin pin) async {
-    //Add the pin to the database
-    DocumentReference newPin =
-        await Firestore.instance.collection("pins").add(pin.asMap());
-    //Convert the first review to a map
-    Map<String, dynamic> initialReviewMap = pin.reviews.elementAt(0).asMap();
-    //Add the pin's ID to the review's map
-    initialReviewMap["pinID"] = newPin.documentID;
-    //Add the review to the database
-    DocumentReference initialReview =
-        await Firestore.instance.collection("reviews").add(initialReviewMap);
-
-    //Give the pin its databaseID
-    pin.id = newPin.documentID;
-    //Give the initial review its database ID
-    pin.reviews.elementAt(0).id = initialReview.documentID;
-  }
-   */
-
   static Stream<List<Review>> getReviewsForPin(String pinID) {
     return Firestore.instance
         .collection("reviews")
@@ -75,7 +55,7 @@ class Database {
     return await Firestore.instance
         .collection("reviews")
         .where("pinID", isEqualTo: pinID)
-        //.orderBy("dateAdded", descending: true)
+    //.orderBy("dateAdded", descending: true)
         .limit(1)
         .snapshots()
         .first
@@ -96,11 +76,11 @@ class Database {
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
-        Review.newReviewMap(author, reviewContent, newPin.documentID);
+    Review.newReviewMap(author, reviewContent, newPin.documentID);
 
     //Add the review to the database
     DocumentReference initialReview =
-        await Firestore.instance.collection("reviews").add(initialReviewMap);
+    await Firestore.instance.collection("reviews").add(initialReviewMap);
 
     return Pin(
       newPin.documentID,
@@ -118,8 +98,8 @@ class Database {
     );
   }
 
-  static Stream<List<Review>> reviewsByUser(
-      Account account, BuildContext context) {
+  static Stream<List<Review>> reviewsByUser(Account account,
+      BuildContext context) {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
@@ -152,5 +132,18 @@ class Database {
   ///its pinID attribute set.
   static void addReview(Review review) {
     Firestore.instance.collection("reviews").add(review.asMap());
+  }
+
+  static void addUserToDatabase(Account user) {
+    Firestore.instance.collection("users").add(user.asMap());
+  }
+
+  static Future<String> getUserNameByID(String id) {
+    return Firestore.instance.collection("users")
+        .where("userID", isEqualTo: id)
+        .getDocuments()
+        .then((snapshot) {
+      return snapshot.documents.first.data["name"];
+    });
   }
 }

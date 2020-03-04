@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/database.dart';
 
 class SignIn {
-
   static final FirebaseAuth auth = FirebaseAuth.instance;
   final GoogleSignIn googleSignIn = new GoogleSignIn(
     scopes: [
@@ -12,8 +13,8 @@ class SignIn {
 
   Future<FirebaseUser> signInWithGoogle() async {
     final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount
-        .authentication;
+    final GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleSignInAuthentication.accessToken,
       idToken: googleSignInAuthentication.idToken,
@@ -27,6 +28,10 @@ class SignIn {
 
     final FirebaseUser currentUser = await auth.currentUser();
     assert(user.uid == currentUser.uid);
+
+    Account.currentAccount = Account.fromFirebaseUser(user);
+    if (authResult.additionalUserInfo.isNewUser)
+      Database.addUserToDatabase(Account.currentAccount);
     return user;
   }
 
@@ -36,4 +41,3 @@ class SignIn {
     print("User Sign Out");
   }
 }
-

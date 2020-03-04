@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/account.dart';
-import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 

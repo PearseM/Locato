@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:integrated_project/resources/database.dart';
@@ -33,7 +32,10 @@ class Account {
     );
   }
 
-  String get userName => _userName;
+  Future<String> get userName async {
+    if (_userName != null) return _userName;
+    else return Database.getUserNameByID(id);
+  }
 
   void updateUserName(String value) {
     _userName = value;
@@ -68,15 +70,16 @@ class Account {
     // TODO: update DB
   }
 
+  Map<String, dynamic> asMap() {
+    Map<String, dynamic> accountMap = Map();
+    accountMap["userID"] = id;
+    accountMap["name"] = _userName;
+    accountMap["email"] = _email;
+    accountMap["isAdmin"] = false;
+    return accountMap;
+  }
+
   static Stream<List<Review>> getReviewsForUser(BuildContext context) {
     return Database.reviewsByUser(currentAccount, context);
-        /*.listen((onData) {
-      onData.documentChanges.forEach((change) {
-        DocumentSnapshot reviewSnapshot = change.document;
-        reviews.add(
-            Review.fromMap(reviewSnapshot.documentID, reviewSnapshot.data));
-      });
-    });
-    return reviews;*/
   }
 }

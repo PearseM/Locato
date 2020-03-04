@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map.dart';
 import 'package:integrated_project/sign_in.dart';
 

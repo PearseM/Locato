@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
@@ -12,7 +11,6 @@ import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:integrated_project/screens/new_pin_form.dart';
 import 'package:integrated_project/resources/pin.dart';
-import 'package:integrated_project/resources/review.dart';
 
 class MapPage extends StatefulWidget {
   static const kDefaultZoom = 14.4746;
@@ -147,10 +145,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     super.initState();
 
     Pin.formKey = formKey;
-
-    FirebaseAuth.instance.currentUser().then((user) {
-      Account.currentAccount = Account.fromFirebaseUser(user);
-    });
 
     drawerAnimator = AnimationController(
       vsync: this,
