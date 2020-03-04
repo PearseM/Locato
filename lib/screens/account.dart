@@ -11,60 +11,25 @@ class AccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      appBar: AppBar(
-        title: Text("Account Settings"),
-        centerTitle: true,
-      ),
-      body: Container(
-        padding: EdgeInsets.all(20.0),
+      appBar: AppBar(title: Text("Account Settings")),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            MyUsernameForm(),
-            Wrap(
-              alignment: WrapAlignment.center,
-              runSpacing: 15.0,
-              children: <Widget>[
-                FlatButton.icon(
-                  onPressed: () {
-                    signOut(context);
-                  },
-                  icon: Icon(
-                    Icons.account_box,
-                    size: 50.0,
-                    color: Colors.blue[800],
-                  ),
-                  color: Colors.grey,
-                  label: Text(
-                    "Switch Account",
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 15.0),
-                FlatButton.icon(
-                  onPressed: () {
-                    handleDeleteButton(context);
-                  },
-                  icon: Icon(
-                    Icons.delete_forever,
-                    size: 50.0,
-                    color: Colors.red[800],
-                  ),
-                  color: Colors.grey,
-                  label: Text(
-                    "Delete Account",
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: DisplayNameForm(),
+            ),
+            Spacer(),
+            FlatButton(
+              onPressed: () => signOut(context),
+              child: Text("Sign out"),
+            ),
+            FlatButton(
+              onPressed: () => handleDeleteButton(context),
+              textColor: Theme.of(context).errorColor,
+              child: Text("Delete account"),
             ),
           ],
         ),
@@ -72,112 +37,87 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  void handleDeleteButton(BuildContext context) {
-    confirmationDialog(context, "delete yout account").then((bool confirmed) {
-      if (confirmed) {
-        deleteAccount(context);
-      }
-    });
+  void handleDeleteButton(BuildContext context) async {
+    bool confirmed = await confirmationDialog(context, "delete your account");
+    if (confirmed) {
+      deleteAccount(context);
+    }
   }
 }
 
-class MyUsernameForm extends StatefulWidget {
+class DisplayNameForm extends StatefulWidget {
   @override
-  MyUsernameFormState createState() {
-    return MyUsernameFormState();
-  }
+  State<DisplayNameForm> createState() => DisplayNameFormState();
 }
 
-class MyUsernameFormState extends State<MyUsernameForm> {
-  final TextEditingController usernameController = new TextEditingController();
-  final formKey = GlobalKey<FormState>();
-  String currentUsername = "Unknown";
+class DisplayNameFormState extends State<DisplayNameForm> {
+  FocusNode formFocus = FocusNode();
+  GlobalKey<FormFieldState> formKey = GlobalKey();
+
+  TextEditingController controller;
 
   @override
-  void initState() async {
-    String name = await Account.currentAccount.userName;
-    setState(() {
-      currentUsername = name;
+  void initState() {
+    FirebaseAuth.instance.currentUser().then((user) {
+      setState(() {
+        controller = TextEditingController(text: user.displayName);
+      });
     });
+
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-    return Form(
-        key: formKey,
-        child: Column(children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 10.0),
-            child: Text.rich(
-              TextSpan(children: <TextSpan>[
-                TextSpan(
-                    text: "Current Username\n",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
-                TextSpan(
-                    text: currentUsername, style: TextStyle(fontSize: 20.0)),
-              ]),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          TextFormField(
-              controller: usernameController,
-              style: TextStyle(
-                fontSize: 20.0,
-              ),
-              decoration: InputDecoration(
-                hintText: "Enter new username",
-                suffixIcon: IconButton(
-                    onPressed: () => usernameController.clear(),
-                    icon: Icon(Icons.clear)),
-              ),
-              validator: (username) {
-                RegExp alphaNumRegEx = RegExp(r'^[a-zA-Z0-9]+$');
+    return TextFormField(
+      key: formKey,
+      controller: controller,
+      focusNode: formFocus,
+      decoration: InputDecoration(
+        icon: Icon(Icons.person),
+        labelText: "Display Name",
+        hintText: "How would you like to be known?",
+      ),
+      onFieldSubmitted: (value) async {
+        FirebaseUser user = await FirebaseAuth.instance.currentUser();
+        String oldDisplayName = user.displayName;
+        Account.updateUserName(value);
 
-                if (!alphaNumRegEx.hasMatch(username) && username.length > 0) {
-                  return "You must have only alphanumeric characters in your username";
-                }
-                if (username.length > userNameMax) {
-                  return "Your username is too long, the maximum length is " +
-                      userNameMax.toString();
-                }
-                if (username.length < userNameMin) {
-                  return "Your username is too short, the minimum length is " +
-                      userNameMin.toString();
-                }
-                return null;
-              }),
-          FlatButton(
+        SnackBar snackbar = SnackBar(
+          content: Text("Your display name was changed."),
+          action: SnackBarAction(
+            label: "Undo",
             onPressed: () {
-              if (formKey.currentState.validate()) {
-                handleUsernameButton();
-                FocusScope.of(context).unfocus();
-              }
+              Account.updateUserName(oldDisplayName);
+              setState(() {
+                controller.text = oldDisplayName;
+              });
             },
-            child: Text(
-              "Change Username",
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            color: Colors.grey,
           ),
-        ]));
+        );
+        Scaffold.of(context).showSnackBar(snackbar);
+
+        formFocus.unfocus();
+      },
+      validator: validateDisplayName,
+    );
   }
 
-  void handleUsernameButton() {
-    var newName = usernameController.text;
-    confirmationDialog(context, "change your username to \"" + newName + "\"")
-        .then((bool confirmed) {
-      if (confirmed) {
-        setState(() {
-          currentUsername = newName;
-        });
-        usernameController.clear();
-        updateUsername(newName);
-      }
-    });
+  String validateDisplayName(String value) {
+    RegExp alphaNumRegEx = RegExp(r'^[a-zA-Z0-9]+$');
+
+    if (!alphaNumRegEx.hasMatch(value) && value.length > 0) {
+      return "Your display name may only contain alphanumeric characters.";
+    }
+    if (value.length > userNameMax) {
+      return "Your display name is too long, the maximum length is " +
+          userNameMax.toString();
+    }
+    if (value.length < userNameMin) {
+      return "Your display name is too short, the minimum length is " +
+          userNameMin.toString();
+    }
+    return null;
   }
 }
 
@@ -209,10 +149,8 @@ Future<bool> confirmationDialog(BuildContext context, String subject) {
 void deleteAccount(BuildContext context) {
   FirebaseAuth.instance.currentUser().then((user) {
     user.delete();
-    Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => MyApp()),
-        (route) => false);
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => MyApp()), (route) => false);
   });
 }
 
@@ -220,13 +158,4 @@ void signOut(BuildContext context) {
   FirebaseAuth.instance.signOut();
   Navigator.pushAndRemoveUntil(context,
       MaterialPageRoute(builder: (context) => MyApp()), (route) => false);
-}
-
-//For updating the username in the database.
-void updateUsername(String newName) {
-  UserUpdateInfo newInfo = UserUpdateInfo();
-  newInfo.displayName = newName;
-  FirebaseAuth.instance
-      .currentUser()
-      .then((user) => user.updateProfile(newInfo));
 }
