@@ -9,12 +9,15 @@ const int userNameMin = 1;
 const int userNameMax = 100;
 
 class AccountPage extends StatelessWidget {
+  final GlobalKey<DisplayNameFormState> formKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Account Settings")),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        onTap: () => formKey.currentState?.formFocus?.unfocus(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -37,7 +40,7 @@ class AccountPage extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.all(8.0),
-              child: DisplayNameForm(),
+              child: DisplayNameForm(key: formKey),
             ),
             Spacer(),
             FlatButton(
@@ -83,13 +86,14 @@ class AccountPage extends StatelessWidget {
 }
 
 class DisplayNameForm extends StatefulWidget {
+  DisplayNameForm({Key key}) : super(key: key);
+
   @override
   State<DisplayNameForm> createState() => DisplayNameFormState();
 }
 
 class DisplayNameFormState extends State<DisplayNameForm> {
   FocusNode formFocus = FocusNode();
-  GlobalKey<FormFieldState> formKey = GlobalKey();
 
   TextEditingController controller;
 
@@ -107,7 +111,6 @@ class DisplayNameFormState extends State<DisplayNameForm> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      key: formKey,
       controller: controller,
       focusNode: formFocus,
       decoration: InputDecoration(
