@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
@@ -21,21 +23,55 @@ class PinInfoDrawer extends StatelessWidget {
       builder: (_, scrollController) => Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(20),
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  pin.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .title
-                      .copyWith(color: Colors.white),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  color: Theme.of(context).accentColor,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        pin.name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .title
+                            .copyWith(color: Colors.white),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.content_copy),
+                        color: Colors.white,
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: pin.id));
+                          showDialog(
+                            context: context,
+                            builder: (_) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0)),
+                                content: Text(
+                                  "You have copied the id of this pin to your clipboard.",
+                                  textAlign: TextAlign.center,
+                                ),
+                                actions: <Widget>[
+                                  new FlatButton(
+                                    child: new Text("Close"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ]),
+            ]),
           Expanded(
             child: Stack(children: [
               StreamBuilder<List<Review>>(
