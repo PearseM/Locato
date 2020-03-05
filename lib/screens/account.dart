@@ -18,41 +18,43 @@ class AccountPage extends StatelessWidget {
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => formKey.currentState?.formFocus?.unfocus(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              alignment: Alignment.center,
-              margin: EdgeInsets.all(16.0),
-              child: FutureBuilder(
-                future: SignIn.auth.currentUser(),
-                builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
-                  if (snapshot.hasData) {
-                    return CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot.data.photoUrl),
-                      radius: 64,
-                    );
-                  } else {
-                    return CircularProgressIndicator();
-                  }
-                },
+        child: Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.all(16.0),
+                child: FutureBuilder(
+                  future: SignIn.auth.currentUser(),
+                  builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
+                    if (snapshot.hasData) {
+                      return CircleAvatar(
+                        backgroundImage: NetworkImage(snapshot.data.photoUrl),
+                        radius: 64,
+                      );
+                    } else {
+                      return CircularProgressIndicator();
+                    }
+                  },
+                ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: DisplayNameForm(key: formKey),
-            ),
-            Spacer(),
-            FlatButton(
-              onPressed: () => signOut(context),
-              child: Text("Sign out"),
-            ),
-            FlatButton(
-              onPressed: () => handleDeleteButton(context),
-              textColor: Theme.of(context).errorColor,
-              child: Text("Delete account"),
-            ),
-          ],
+              DisplayNameForm(key: formKey),
+              Spacer(),
+              OutlineButton(
+                onPressed: () => signOut(context),
+                borderSide: BorderSide(color: Colors.grey),
+                child: Text("Sign out"),
+              ),
+              RaisedButton(
+                onPressed: () => handleDeleteButton(context),
+                textColor: Theme.of(context).colorScheme.onError,
+                color: Theme.of(context).errorColor,
+                child: Text("Delete account"),
+              ),
+            ],
+          ),
         ),
       ),
     );
