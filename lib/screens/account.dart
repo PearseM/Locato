@@ -41,6 +41,19 @@ class AccountPage extends StatelessWidget {
                 ),
               ),
               DisplayNameForm(key: formKey),
+              SizedBox(height: 32.0),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Column(children: [
+                      Text("16", textScaleFactor: 2.0),
+                      Text("Pins visited"),
+                    ]),
+                    Column(children: [
+                      Text("4", textScaleFactor: 2.0),
+                      Text("Reviews written"),
+                    ]),
+                  ]),
               Spacer(),
               OutlineButton(
                 onPressed: () => signOut(context),
