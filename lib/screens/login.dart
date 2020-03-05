@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:integrated_project/screens/map.dart';
@@ -15,39 +16,36 @@ class LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Stack(
-        children: <Widget>[
-          Align(
-            alignment: Alignment(0.0, -0.6),
-            child: Text(
-              "locato",
-              style: GoogleFonts.merriweather().copyWith(color: Colors.white),
-              textScaleFactor: 5.0,
-            ),
-          ),
-          Align(
-            child: Card(
-              shape: StadiumBorder(),
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Icon(Icons.beach_access, size: 250.0),
+      body: SizedBox.expand(
+        child: Card(
+          margin: MediaQuery.of(context).padding +
+              EdgeInsets.symmetric(vertical: 128.0, horizontal: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Text(
+                "Locato",
+                style: GoogleFonts.playfairDisplay(),
+                textScaleFactor: 5.0,
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment(0.0, 0.75),
-            child: GoogleSignInButton(
-              onPressed: () {
-                SignIn().signInWithGoogle().then((user) {
+              Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Image.asset("assets/logo.jpeg"),
+              ),
+              GoogleSignInButton(
+                onPressed: () async {
+                  FirebaseUser user = await SignIn().signInWithGoogle();
                   if (user != null) {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MapPage()));
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => MapPage()),
+                    );
                   }
-                });
-              },
-            ),
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
