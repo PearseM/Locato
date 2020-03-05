@@ -38,7 +38,26 @@ class AccountPage extends StatelessWidget {
   }
 
   void handleDeleteButton(BuildContext context) async {
-    bool confirmed = await confirmationDialog(context, "delete your account");
+    bool confirmed = await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text("Are you sure?"),
+        content: Text("All data associated with your account will be deleted."),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text("Cancel"),
+          ),
+          FlatButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            textColor: Theme.of(context).errorColor,
+            child: Text("Delete"),
+          )
+        ],
+      ),
+    );
+
     if (confirmed) {
       deleteAccount(context);
     }
@@ -119,31 +138,6 @@ class DisplayNameFormState extends State<DisplayNameForm> {
     }
     return null;
   }
-}
-
-Future<bool> confirmationDialog(BuildContext context, String subject) {
-  return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return new AlertDialog(
-          title: new Text("Are you sure you want to " + subject + "?"),
-          actions: <Widget>[
-            new FlatButton(
-              child: const Text("YES"),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-            new FlatButton(
-              child: const Text("NO"),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-          ],
-        );
-      });
 }
 
 void deleteAccount(BuildContext context) {
