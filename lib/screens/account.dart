@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:integrated_project/main.dart';
+import 'package:integrated_project/sign_in.dart';
 import 'package:integrated_project/resources/account.dart';
 
 //Minimum and maximum character count for the username.
@@ -17,6 +18,23 @@ class AccountPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Container(
+              alignment: Alignment.center,
+              margin: EdgeInsets.all(16.0),
+              child: FutureBuilder(
+                future: SignIn.auth.currentUser(),
+                builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
+                  if (snapshot.hasData) {
+                    return CircleAvatar(
+                      backgroundImage: NetworkImage(snapshot.data.photoUrl),
+                      radius: 64,
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                },
+              ),
+            ),
             Padding(
               padding: EdgeInsets.all(8.0),
               child: DisplayNameForm(),
