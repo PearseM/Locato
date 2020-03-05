@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Database {
   static Stream<List<Pin>> getPins(BuildContext context) {
@@ -24,6 +27,7 @@ class Database {
           ),
           Account(document["author"]),
           document["name"],
+          document["imageUrl"],
           firstReview,
           context,
         );
@@ -33,6 +37,13 @@ class Database {
       return pinsListCompleter.future;
     });
   }
+
+  static Future<File> getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+
+    return image;
+  }
+
 
   static Stream<List<Review>> getReviewsForPin(String pinID) {
     return Firestore.instance
@@ -68,11 +79,20 @@ class Database {
   }
 
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
-      Account author, BuildContext context) async {
+      Account author, Future<File> image, BuildContext context) async {
+
+    //Add the image to the database
+    File actualImage = await image;
+    var timeKey = new DateTime.now();
+    final StorageReference postImageRef = FirebaseStorage.instance.ref().child("Pin Images");
+    final StorageUploadTask uploadTask = postImageRef.child(timeKey.toString() + ".jpg").putFile(actualImage);
+    var imageUrl = await (await uploadTask.onComplete).ref.getDownloadURL();
+    print(imageUrl);
+
     //Add the pin to the database
     DocumentReference newPin = await Firestore.instance
         .collection("pins")
-        .add(Pin.newPinMap(name, location, author));
+        .add(Pin.newPinMap(name, location, author, imageUrl));
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
@@ -87,6 +107,7 @@ class Database {
       location,
       author,
       name,
+      imageUrl,
       Review(
         initialReview.documentID,
         author,
