@@ -32,7 +32,6 @@ dependencies:
   intl: ^0.16.1
   edit_distance: ^0.4.1
   flutter_auth_buttons: ^0.6.0
-  google_fonts: ^0.3.9
 
 dev_dependencies:
   flutter_test:

@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:integrated_project/screens/map.dart';
 import 'package:integrated_project/sign_in.dart';
 import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -25,7 +24,6 @@ class LoginScreenState extends State<LoginScreen> {
             children: <Widget>[
               Text(
                 "Locato",
-                style: GoogleFonts.playfairDisplay(),
                 textScaleFactor: 5.0,
               ),
               Padding(
