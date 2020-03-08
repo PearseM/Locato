@@ -125,7 +125,10 @@ class DisplayNameForm extends StatefulWidget {
 class DisplayNameFormState extends State<DisplayNameForm> {
   FocusNode formFocus = FocusNode();
 
+  GlobalKey<FormFieldState> key = GlobalKey();
   TextEditingController controller;
+
+  bool pending = false;
 
   @override
   void initState() {
@@ -138,37 +141,56 @@ class DisplayNameFormState extends State<DisplayNameForm> {
     super.initState();
   }
 
+  void submitValue(value) async {
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    String oldDisplayName = user.displayName;
+    Account.updateUserName(value);
+
+    setState(() => pending = false);
+
+    SnackBar snackbar = SnackBar(
+      content: Text("Your display name was changed."),
+      action: SnackBarAction(
+        label: "Undo",
+        onPressed: () {
+          Account.updateUserName(oldDisplayName);
+          setState(() {
+            controller.text = oldDisplayName;
+          });
+        },
+      ),
+    );
+    Scaffold.of(context).showSnackBar(snackbar);
+
+    formFocus.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: key,
       controller: controller,
       focusNode: formFocus,
       decoration: InputDecoration(
         icon: Icon(Icons.person),
         labelText: "Display Name",
         hintText: "How would you like to be known?",
-      ),
-      onFieldSubmitted: (value) async {
-        FirebaseUser user = await FirebaseAuth.instance.currentUser();
-        String oldDisplayName = user.displayName;
-        Account.updateUserName(value);
-
-        SnackBar snackbar = SnackBar(
-          content: Text("Your display name was changed."),
-          action: SnackBarAction(
-            label: "Undo",
+        suffixIcon: Visibility(
+          child: IconButton(
+            icon: Icon(Icons.save),
             onPressed: () {
-              Account.updateUserName(oldDisplayName);
-              setState(() {
-                controller.text = oldDisplayName;
-              });
+              formFocus.unfocus();
+              key.currentState.save();
             },
           ),
-        );
-        Scaffold.of(context).showSnackBar(snackbar);
-
-        formFocus.unfocus();
+          visible: pending,
+        ),
+      ),
+      onChanged: (_) {
+        setState(() => pending = true);
       },
+      onFieldSubmitted: submitValue,
+      onSaved: submitValue,
       validator: validateDisplayName,
     );
   }
