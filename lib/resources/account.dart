@@ -37,9 +37,13 @@ class Account {
     else return Database.getUserNameByID(id);
   }
 
-  void updateUserName(String value) {
-    _userName = value;
-    // TODO: update DB
+  static updateUserName(String value) async {
+    Account.currentAccount._userName = value;
+
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    var newInfo = UserUpdateInfo();
+    newInfo.displayName = value;
+    user.updateProfile(newInfo);
   }
 
   String get email => _email;
