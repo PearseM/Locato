@@ -71,9 +71,9 @@ class Pin {
       markerId: MarkerId(pin.id),
       position: pin.location,
       onTap: () => showModalBottomSheet(
-        isScrollControlled: true,
         context: context,
         builder: (_) => PinInfoDrawer(formKey, pin),
+        isScrollControlled: true,
       ),
     );
   }
@@ -97,7 +97,8 @@ class Pin {
     return pin;
   }
 
-  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review, BuildContext context) {
+  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review,
+      BuildContext context) {
     return Pin(
         id,
         LatLng(pinMap["location"].latitude, pinMap["location"].longitude),

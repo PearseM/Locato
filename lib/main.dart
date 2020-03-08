@@ -12,6 +12,11 @@ class MyApp extends StatelessWidget {
       title: 'PhotoScout',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        bottomSheetTheme: BottomSheetThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+          ),
+        ),
       ),
       home: LoginScreen(),
     );

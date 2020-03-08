@@ -18,88 +18,73 @@ class PinInfoDrawer extends StatelessWidget {
       initialChildSize: 0.75,
       minChildSize: 0.5,
       maxChildSize: 0.75,
-      builder: (_, scrollController) => Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Row(children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.all(20),
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  pin.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .title
-                      .copyWith(color: Colors.white),
-                ),
-              ),
+      builder: (_, scrollController) => Stack(children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            AppBar(
+              title: Text(pin.name),
+              shape: Theme.of(context).bottomSheetTheme.shape,
             ),
-          ]),
-          Expanded(
-            child: Stack(children: [
-              StreamBuilder<List<Review>>(
-                stream: Database.getReviewsForPin(pin.id),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else {
-                    return (snapshot.data.isEmpty)
-                        ? Center(
-                            child: Text("No reviews"),
-                          )
-                        : ListView.separated(
-                            controller: scrollController,
-                            itemCount: snapshot.data.length,
-                            separatorBuilder: (_, i) => Divider(
-                              color: Colors.black,
-                            ),
-                            itemBuilder: (_, i) {
-                              Review review = snapshot.data.elementAt(i);
-                              return FutureBuilder(
-                                future: review.author.userName,
-                                builder: (context, nameSnapshot) {
-                                  return PinListItem(
-                                    name: (nameSnapshot.connectionState ==
-                                                ConnectionState.waiting ||
-                                            nameSnapshot.data == null)
-                                        ? "Unknown"
-                                        : nameSnapshot.data,
-                                    date: review.timestamp,
-                                    comment: review.body,
-                                  );
-                                },
-                              );
-                            },
-                          );
-                  }
-                },
+            Expanded(child: ReviewList(pin, scrollController)),
+          ],
+        ),
+        Container(
+          alignment: Alignment.bottomRight,
+          padding: EdgeInsets.all(8.0),
+          child: FloatingActionButton.extended(
+            onPressed: () => [
+              showModalBottomSheet(
+                isScrollControlled: true,
+                context: context,
+                builder: (_) => NewReviewForm(_formKey, pin),
               ),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
-                  child: RaisedButton.icon(
-                    onPressed: () => [
-                      //Navigator.of(context).pop(),
-                      showModalBottomSheet(
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (_) => NewReviewForm(_formKey, pin),
-                      ),
-                    ],
-                    icon: Icon(Icons.add),
-                    shape: StadiumBorder(),
-                    color: Theme.of(context).accentColor,
-                    textColor: Colors.white,
-                    label: Text("Add review"),
-                  ),
-                ),
-              ),
-            ]),
+            ],
+            icon: Icon(Icons.add),
+            label: Text("Add review"),
           ),
-        ],
-      ),
+        ),
+      ]),
+    );
+  }
+}
+
+class ReviewList extends StatelessWidget {
+  final Pin pin;
+  final ScrollController scrollController;
+
+  ReviewList(this.pin, this.scrollController);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Review>>(
+      stream: Database.getReviewsForPin(pin.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.data.isEmpty) {
+          return Center(child: Text("No reviews"));
+        } else {
+          return ListView.separated(
+            controller: scrollController,
+            itemCount: snapshot.data.length,
+            separatorBuilder: (_, i) => Divider(color: Colors.black),
+            itemBuilder: (_, i) {
+              Review review = snapshot.data.elementAt(i);
+              return FutureBuilder(
+                future: review.author.userName,
+                builder: (context, nameSnapshot) {
+                  return PinListItem(
+                    name: nameSnapshot.data ?? "Unknown",
+                    date: review.timestamp,
+                    comment: review.body,
+                  );
+                },
+              );
+            },
+          );
+        }
+      },
     );
   }
 }
