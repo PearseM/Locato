@@ -24,8 +24,8 @@ class Database {
           ),
           Account(document["author"]),
           document["name"],
-          firstReview,
           context,
+          review: firstReview,
         );
         pins.add(pin);
       }
@@ -55,15 +55,18 @@ class Database {
     return await Firestore.instance
         .collection("reviews")
         .where("pinID", isEqualTo: pinID)
-    //.orderBy("dateAdded", descending: true)
+        //.orderBy("dateAdded", descending: true)
         .limit(1)
         .snapshots()
         .first
         .then((snapshot) {
-      DocumentSnapshot firstReviewDocument =
-          snapshot.documentChanges.first.document;
-      return Review.fromMap(
-          firstReviewDocument.documentID, firstReviewDocument.data);
+      if (snapshot.documents.length > 0) {
+        DocumentSnapshot firstReviewDocument =
+            snapshot.documentChanges.first.document;
+        return Review.fromMap(
+            firstReviewDocument.documentID, firstReviewDocument.data);
+      } else
+        return null;
     });
   }
 
@@ -76,30 +79,30 @@ class Database {
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
-    Review.newReviewMap(author, reviewContent, newPin.documentID);
+        Review.newReviewMap(author, reviewContent, newPin.documentID);
 
     //Add the review to the database
     DocumentReference initialReview =
-    await Firestore.instance.collection("reviews").add(initialReviewMap);
+        await Firestore.instance.collection("reviews").add(initialReviewMap);
 
     return Pin(
       newPin.documentID,
       location,
       author,
       name,
-      Review(
+      context,
+      review: Review(
         initialReview.documentID,
         author,
         reviewContent,
         initialReviewMap["dateAdded"].toDate(),
         0,
       ),
-      context,
     );
   }
 
-  static Stream<List<Review>> reviewsByUser(Account account,
-      BuildContext context) {
+  static Stream<List<Review>> reviewsByUser(
+      Account account, BuildContext context) {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
@@ -139,11 +142,54 @@ class Database {
   }
 
   static Future<String> getUserNameByID(String id) {
-    return Firestore.instance.collection("users")
+    return Firestore.instance
+        .collection("users")
         .where("userID", isEqualTo: id)
         .getDocuments()
         .then((snapshot) {
       return snapshot.documents.first.data["name"];
+    });
+  }
+
+  /// Removes a flag from a review.
+  ///
+  /// Removes the currently logged in user's flag from the review indicated by
+  /// [id].
+  static void unFlag(String id) {
+    Firestore.instance
+        .collection("flags")
+        .where("reviewID", isEqualTo: id)
+        .where("userID", isEqualTo: Account.currentAccount.id)
+        .getDocuments()
+        .then((snapshot) {
+      if (snapshot.documents.length > 0)
+        snapshot.documents.first.reference.delete();
+    });
+  }
+
+  /// Marks a review as flagged.
+  ///
+  /// Flags a review, indicated by [id] in the database, as the currently logged
+  /// in user.
+  static void flag(String id) {
+    Map<String, dynamic> flag = Map();
+    flag["reviewID"] = id;
+    flag["userID"] = Account.currentAccount.id;
+    Firestore.instance.collection("flags").add(flag);
+  }
+
+  /// Checks if the currently logged in user has flagged this review.
+  ///
+  /// Queries the database to determine whether the currently logged in user has
+  /// flagged the review specified by [id].
+  static Future<bool> isFlagged(id) {
+    return Firestore.instance
+        .collection("flags")
+        .where("reviewID", isEqualTo: id)
+        .where("userID", isEqualTo: Account.currentAccount.id)
+        .getDocuments()
+        .then((snapshot) {
+      return (snapshot.documents.length > 0);
     });
   }
 }

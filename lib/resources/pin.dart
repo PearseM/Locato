@@ -35,12 +35,14 @@ class Pin {
     this.location,
     this.author,
     this.name,
+    BuildContext context, {
     Review review,
-    BuildContext context,
-  ) {
+  }) {
     marker = _createMarker(context, this);
-    _reviews.add(review);
-    review.pin = this;
+    if (review != null) {
+      _reviews.add(review);
+      review.pin = this;
+    }
   }
 
   Set<Category> get categories => _categories;
@@ -97,13 +99,15 @@ class Pin {
     return pin;
   }
 
-  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review, BuildContext context) {
+  static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review,
+      BuildContext context) {
     return Pin(
-        id,
-        LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
-        Account(pinMap["author"]),
-        pinMap["name"],
-        review,
-        context); //TODO think about this
+      id,
+      LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
+      Account(pinMap["author"]),
+      pinMap["name"],
+      context,
+      review: review,
+    ); //TODO think about this
   }
 }

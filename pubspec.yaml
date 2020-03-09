@@ -21,10 +21,10 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^0.1.2
-  #Newer versions of this dependency are problematic on iOS 4/3/20:
+  # Newer versions of this dependency are problematic on iOS 4/3/20:
   firebase_core: 0.4.4
   cloud_firestore: ^0.13.3
-  #Newer versions of this dependency are problematic on iOS 4/3/20:
+  # Newer versions of this dependency are problematic on iOS 4/3/20:
   firebase_auth: 0.15.4
   google_maps_flutter: ^0.5.22
   google_sign_in: ^4.1.1

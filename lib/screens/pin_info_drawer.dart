@@ -67,6 +67,7 @@ class PinInfoDrawer extends StatelessWidget {
                                         : nameSnapshot.data,
                                     date: review.timestamp,
                                     comment: review.body,
+                                    id: review.id,
                                   );
                                 },
                               );
