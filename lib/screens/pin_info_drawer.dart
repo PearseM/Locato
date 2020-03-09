@@ -6,7 +6,6 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
-import 'package:photo_view/photo_view.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final GlobalKey<FormState> _formKey;
@@ -28,6 +27,36 @@ class PinInfoDrawer extends StatelessWidget {
             AppBar(
               title: Text(pin.name),
               shape: Theme.of(context).bottomSheetTheme.shape,
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.content_copy),
+                  color: Colors.white,
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: pin.id.hashCode.toString()));
+                    showDialog(
+                      context: context,
+                      builder: (_) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.0)),
+                          content: Text(
+                            "You have copied the id of this pin to your clipboard.",
+                            textAlign: TextAlign.center,
+                          ),
+                          actions: <Widget>[
+                            new FlatButton(
+                              child: new Text("Close"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
             Expanded(child: ReviewList(pin, scrollController)),
           ],
