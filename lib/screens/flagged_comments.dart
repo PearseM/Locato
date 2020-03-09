@@ -40,7 +40,7 @@ Widget _myListView(BuildContext context) {
   var location = new LatLng(52.518611, 13.408056);
   for (int i = 0; i < 25; i++) {
     Review review = Review(i.toString(), account, "Comment 1", DateTime.now(), 0);
-    Pin pin = Pin(i.toString(), location, account, "Pin 1", review, context);
+    Pin pin = Pin(i.toString(), location, account, "Pin 1", null, review, context); //null where imageUrl would be
     account.addReview(review);
   }
 

@@ -4,6 +4,7 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:photo_view/photo_view.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final GlobalKey<FormState> _formKey;

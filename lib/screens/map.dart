@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
@@ -82,10 +84,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   ///
   /// Requires the location of the pin, a name and the first review to be
   /// displayed. The pin will also be added to the database
-  void createPin(
-      CameraPosition location, String name, String reviewContent) async {
+  void createPin(CameraPosition location, String name, String reviewContent, Future<File> image) async {
     Pin pin =
-        await Database.newPin(location.target, name, reviewContent, _account, context);
+        await Database.newPin(location.target, name, reviewContent, _account, image, context);
     setState(() {
       pins.add(pin);
     });
@@ -171,7 +172,32 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           NewPinForm form = formKey.currentContext
               .findAncestorWidgetOfExactType<NewPinForm>();
           String pinName = form.nameController.text;
-          createPin(currentMapPosition, pinName, form.bodyController.text);
+
+          showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0)),
+                content: Text(
+                  "Please select an image.",
+                  textAlign: TextAlign.center,
+                ),
+                actions: <Widget>[
+                  new FlatButton(
+                    child: new Text("Ok"),
+                    onPressed: () {
+                      var image = Database.getImage();
+                      createPin(
+                          currentMapPosition, pinName, form.bodyController.text, image);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+
           closeDrawer();
         }
       },
