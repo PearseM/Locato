@@ -43,7 +43,7 @@ class PinInfoDrawer extends StatelessWidget {
                         icon: Icon(Icons.content_copy),
                         color: Colors.white,
                         onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: pin.id));
+                          await Clipboard.setData(ClipboardData(text: pin.id.hashCode.toString()));
                           showDialog(
                             context: context,
                             builder: (_) {

@@ -40,9 +40,11 @@ class MapSearchDelegate extends SearchDelegate<Pin> {
       }
 
       //Find pin by id
-      if (pin.id.contains(RegExp(query, caseSensitive: true))) {
-        results.add(pin);
-      }
+      try {
+        if (pin.id.hashCode == int.parse(query)) {
+          results.add(pin);
+        }
+      } catch(e) {}
     }
 
     return ListView.separated(
