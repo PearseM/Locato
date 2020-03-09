@@ -60,9 +60,11 @@ class ReviewList extends StatelessWidget {
     return StreamBuilder<List<Review>>(
       stream: Database.getReviewsForPin(pin.id),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData) {
           return CircularProgressIndicator();
-        } else if (snapshot.data.isEmpty) {
+        }
+
+        if (snapshot.data.isEmpty) {
           return Center(child: Text("No reviews"));
         } else {
           return ListView.separated(
