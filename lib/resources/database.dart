@@ -65,7 +65,7 @@ class Database {
     return await Firestore.instance
         .collection("reviews")
         .where("pinID", isEqualTo: pinID)
-    //.orderBy("dateAdded", descending: true)
+        //.orderBy("dateAdded", descending: true)
         .limit(1)
         .snapshots()
         .first
@@ -79,12 +79,13 @@ class Database {
 
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
       Account author, Future<File> image, BuildContext context) async {
-
     //Add the image to the database
     File actualImage = await image;
     var timeKey = new DateTime.now();
-    final StorageReference postImageRef = FirebaseStorage.instance.ref().child("Pin Images");
-    final StorageUploadTask uploadTask = postImageRef.child(timeKey.toString() + ".jpg").putFile(actualImage);
+    final StorageReference postImageRef =
+        FirebaseStorage.instance.ref().child("Pin Images");
+    final StorageUploadTask uploadTask =
+        postImageRef.child(timeKey.toString() + ".jpg").putFile(actualImage);
     var imageUrl = await (await uploadTask.onComplete).ref.getDownloadURL();
     print(imageUrl);
 
@@ -95,11 +96,11 @@ class Database {
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
-    Review.newReviewMap(author, reviewContent, newPin.documentID);
+        Review.newReviewMap(author, reviewContent, newPin.documentID);
 
     //Add the review to the database
     DocumentReference initialReview =
-    await Firestore.instance.collection("reviews").add(initialReviewMap);
+        await Firestore.instance.collection("reviews").add(initialReviewMap);
 
     return Pin(
       newPin.documentID,
@@ -118,8 +119,8 @@ class Database {
     );
   }
 
-  static Stream<List<Review>> reviewsByUser(Account account,
-      BuildContext context) {
+  static Stream<List<Review>> reviewsByUser(
+      Account account, BuildContext context) {
     return Firestore.instance
         .collection("reviews")
         .where("author", isEqualTo: account.id)
@@ -159,7 +160,8 @@ class Database {
   }
 
   static Future<String> getUserNameByID(String id) {
-    return Firestore.instance.collection("users")
+    return Firestore.instance
+        .collection("users")
         .where("userID", isEqualTo: id)
         .getDocuments()
         .then((snapshot) {

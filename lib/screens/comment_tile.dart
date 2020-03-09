@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/screens/map.dart';
+import 'package:photo_view/photo_view.dart';
 
 class YourReviewsListItem extends ListTile {
   const YourReviewsListItem({
@@ -55,11 +56,13 @@ class PinListItem extends ListTile {
     this.name,
     this.date,
     this.comment,
+    this.imgURL
   });
 
   final String name;
   final DateTime date;
   final String comment;
+  final String imgURL;
 
   @override
   Widget build (BuildContext context) {
@@ -75,6 +78,37 @@ class PinListItem extends ListTile {
               name: name,
               date: date,
               comment: comment,
+            ),
+          ),
+          SizedBox(
+            height: 60,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) {
+                    return Scaffold(
+                      appBar: AppBar(
+                        title: Text('Photo View'),
+                      ),
+                      body: PhotoView(
+                        imageProvider: NetworkImage(
+                          imgURL,
+                        ),
+                        minScale: PhotoViewComputedScale.contained,
+                        maxScale: PhotoViewComputedScale.covered * 2,
+                        backgroundDecoration: BoxDecoration(
+                          color: Theme.of(context).canvasColor,
+                        ),
+                      ),
+                    );
+                  },
+                )
+                );
+              },
+              child: Image.network(
+                imgURL,
+                height: MediaQuery.of(context).size.height,
+              ),
             ),
           ),
         ],

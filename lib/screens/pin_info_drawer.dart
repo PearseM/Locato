@@ -62,7 +62,7 @@ class ReviewList extends StatelessWidget {
       stream: Database.getReviewsForPin(pin.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.data.isEmpty) {
@@ -77,11 +77,16 @@ class ReviewList extends StatelessWidget {
               return FutureBuilder(
                 future: review.author.userName,
                 builder: (context, nameSnapshot) {
-                  return PinListItem(
-                    name: nameSnapshot.data ?? "Unknown",
-                    date: review.timestamp,
-                    comment: review.body,
-                  );
+                  return (nameSnapshot.hasData)
+                      ? PinListItem(
+                          name: nameSnapshot.data ?? "Unknown",
+                          date: review.timestamp,
+                          comment: review.body,
+                          imgURL: pin.imageUrl,
+                        )
+                      : Center(
+                          child: CircularProgressIndicator(),
+                        );
                 },
               );
             },
