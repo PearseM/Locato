@@ -4,6 +4,7 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:photo_view/photo_view.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final GlobalKey<FormState> _formKey;
@@ -25,13 +26,50 @@ class PinInfoDrawer extends StatelessWidget {
             Expanded(
               child: Container(
                 padding: EdgeInsets.all(20),
+                height: 100,
                 color: Theme.of(context).accentColor,
-                child: Text(
-                  pin.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .title
-                      .copyWith(color: Colors.white),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      pin.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .title
+                          .copyWith(color: Colors.white),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              return Scaffold(
+                                appBar: AppBar(
+                                  title: Text('Photo View'),
+                                ),
+                                body: PhotoView(
+                                  imageProvider: NetworkImage(
+                                    pin.imageUrl,
+                                  ),
+                                  minScale: PhotoViewComputedScale.contained,
+                                  maxScale: PhotoViewComputedScale.covered * 2,
+                                  backgroundDecoration: BoxDecoration(
+                                    color: Theme.of(context).canvasColor,
+                                  ),
+                                  loadingChild: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        );
+                      },
+                      child: Image.network(
+                        pin.imageUrl,
+                        height: MediaQuery.of(context).size.height,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

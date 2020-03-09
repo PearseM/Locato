@@ -44,7 +44,6 @@ class Database {
     return image;
   }
 
-
   static Stream<List<Review>> getReviewsForPin(String pinID) {
     return Firestore.instance
         .collection("reviews")

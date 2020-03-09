@@ -30,7 +30,6 @@ class NewReviewForm extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.only(bottom: 4.0, right: 8.0),
                       child: BackButton(
-                        color: Theme.of(context).accentColor,
                         onPressed: () {
                           Navigator.of(context).pop();
                         },

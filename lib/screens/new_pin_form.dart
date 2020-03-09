@@ -33,15 +33,15 @@ class NewPinForm extends StatelessWidget {
             TextFormField(
               controller: bodyController,
               decoration: InputDecoration(
-                hintText: "Description of pin",
+                hintText: "Review of pin",
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 //border: OutlineInputBorder(),
               ),
               validator: (value) =>
-                  value.isEmpty ? "Pin must have description" : null,
+                  value.isEmpty ? "Pin must have a review" : null,
               maxLines: 5,
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 15.0),
           ],
         ),
       ),

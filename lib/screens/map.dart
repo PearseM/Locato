@@ -172,9 +172,31 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           NewPinForm form = formKey.currentContext
               .findAncestorWidgetOfExactType<NewPinForm>();
           String pinName = form.nameController.text;
-          var image = Database.getImage();
 
-          createPin(currentMapPosition, pinName, form.bodyController.text, image);
+          showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0)),
+                content: Text(
+                  "Please select an image.",
+                  textAlign: TextAlign.center,
+                ),
+                actions: <Widget>[
+                  new FlatButton(
+                    child: new Text("Ok"),
+                    onPressed: () {
+                      var image = Database.getImage();
+                      createPin(
+                          currentMapPosition, pinName, form.bodyController.text, image);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
 
           closeDrawer();
         }
