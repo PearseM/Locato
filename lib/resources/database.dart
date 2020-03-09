@@ -70,6 +70,29 @@ class Database {
     });
   }
 
+  static Future<Review> getReviewByID(
+      String reviewID, BuildContext context) async {
+    return await Firestore.instance
+        .collection("reviews")
+        .where(FieldPath.documentId, isEqualTo: reviewID)
+        .limit(1)
+        .snapshots()
+        .first
+        .then((snapshot) {
+      if (snapshot.documents.length > 0) {
+        DocumentSnapshot firstReviewDocument =
+            snapshot.documentChanges.first.document;
+        Review review = Review.fromMap(
+            firstReviewDocument.documentID, firstReviewDocument.data);
+        return getPinByID(firstReviewDocument.data["pinID"], context).then((pin) {
+          review.pin = pin;
+          return review;
+        });
+      } else
+        return null;
+    });
+  }
+
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
       Account author, BuildContext context) async {
     //Add the pin to the database
@@ -190,6 +213,32 @@ class Database {
         .getDocuments()
         .then((snapshot) {
       return (snapshot.documents.length > 0);
+    });
+  }
+
+  static Future<bool> isAdmin() {
+    return Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: Account.currentAccount.id)
+        .getDocuments()
+        .then((snapshot) => snapshot.documents.first.data["isAdmin"]);
+  }
+
+  /// Returns all of the reviews that are currently flagged.
+  static Stream<List<Review>> flaggedReviews(BuildContext context) {
+    return Firestore.instance
+        .collection("flags")
+        .snapshots()
+        .asyncMap((querySnapshot) async {
+      Completer<List<Review>> reviewsCompleter = new Completer<List<Review>>();
+      List<Review> reviews = [];
+      for (DocumentSnapshot documentSnapshot in querySnapshot.documents) {
+        Review review =
+            await getReviewByID(documentSnapshot.data["reviewID"], context);
+        reviews.add(review);
+      }
+      reviewsCompleter.complete(reviews);
+      return reviewsCompleter.future;
     });
   }
 }

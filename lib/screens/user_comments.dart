@@ -6,22 +6,15 @@ import 'package:integrated_project/resources/account.dart';
 class UserCommentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Your Reviews',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Scaffold(
-        appBar: AppBar(
-            automaticallyImplyLeading: true,
-            title: Text('Your Reviews'),
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context, false),
-            )),
-        body: BodyLayout(),
-      ),
+    return Scaffold(
+      appBar: AppBar(
+          automaticallyImplyLeading: true,
+          title: Text('Your Reviews'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context, false),
+          )),
+      body: BodyLayout(),
     );
   }
 }
@@ -37,30 +30,31 @@ class _BodyLayoutState extends State<BodyLayout> {
     return StreamBuilder<List<Review>>(
       stream: Account.getReviewsForUser(context),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(
-            child: Text("No comments available"),
-          );
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData ||
+            snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(),
           );
         } else {
-          return ListView.separated(
-            separatorBuilder: (context, index) => Divider(
-              color: Colors.black,
-            ),
-            itemCount: snapshot.data.length,
-            itemBuilder: (context, index) {
-              Review review = snapshot.data.elementAt(index);
-              return YourReviewsListItem(
-                name: review.pin.name,
-                date: review.timestamp,
-                comment: review.body,
-                location: review.pin.location,
-              );
-            },
-          );
+          return (snapshot.data.length > 0)
+              ? ListView.separated(
+                  separatorBuilder: (context, index) => Divider(
+                    color: Colors.black,
+                  ),
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (context, index) {
+                    Review review = snapshot.data.elementAt(index);
+                    return YourReviewsListItem(
+                      name: review.pin.name,
+                      date: review.timestamp,
+                      comment: review.body,
+                      location: review.pin.location,
+                    );
+                  },
+                )
+              : Center(
+                  child: Text("No reviews available."),
+                );
         }
       },
     );
