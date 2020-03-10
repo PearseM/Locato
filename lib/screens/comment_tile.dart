@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/map.dart';
 
 class YourReviewsListItem extends ListTile {
@@ -223,15 +224,9 @@ class CustomListItem extends ListTile {
 }
 
 class FlaggedReviewsListItem extends ListTile {
-  const FlaggedReviewsListItem({
-    this.name,
-    this.date,
-    this.comment,
-  });
+  const FlaggedReviewsListItem(this.review);
 
-  final String name;
-  final DateTime date;
-  final String comment;
+  final Review review;
 
   @override
   Widget build(BuildContext context) {
@@ -244,27 +239,25 @@ class FlaggedReviewsListItem extends ListTile {
           Expanded(
             flex: 3,
             child: CustomListItem(
-              name: name,
-              date: date,
-              comment: comment,
+              name: review.pin.name,
+              date: review.timestamp,
+              comment: review.body,
             ),
           ),
           IconButton(
-            icon: Icon(Icons.check),
+            icon: Icon(Icons.not_interested),
             iconSize: 40.0,
-            color: Color.fromRGBO(0, 255, 0, 1),
+            color: Colors.grey[600],
             onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => MapPage()));
+              Database.ignoreFlags(review.id);
             },
           ),
           IconButton(
-            icon: Icon(Icons.close),
+            icon: Icon(Icons.delete_forever),
             iconSize: 40.0,
-            color: Color.fromRGBO(255, 0, 0, 1),
+            color: Colors.red,
             onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => MapPage()));
+              Database.deleteReview(review);
             },
           ),
         ],

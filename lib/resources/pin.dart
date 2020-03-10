@@ -113,6 +113,6 @@ class Pin {
       pinMap["imageUrl"],
       context,
       review: review,
-    ); //TODO think about this
+    );
   }
 }
