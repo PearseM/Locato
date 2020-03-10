@@ -35,14 +35,6 @@ Widget _myListView(BuildContext context) {
   for (int i = 0; i < 25; i++) {
     Review review =
         Review(i.toString(), account, "Comment 1", DateTime.now(), 0);
-    Pin pin = Pin(
-      i.toString(),
-      location,
-      account,
-      "Pin 1",
-      context,
-      review: review,
-    );
     account.addReview(review);
   }
 

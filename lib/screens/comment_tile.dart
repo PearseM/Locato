@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/map.dart';
-import 'package:photo_view/photo_view.dart';
 
 class YourReviewsListItem extends ListTile {
   const YourReviewsListItem({
@@ -77,7 +76,9 @@ class _PinListItemState extends State<PinListItem> {
   @override
   void initState() {
     Database.isFlagged(widget.id).then((value) {
-      isFlagged = value;
+      setState(() {
+        isFlagged = value;
+      });
     });
     super.initState();
   }

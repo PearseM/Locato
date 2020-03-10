@@ -28,8 +28,8 @@ class Database {
           Account(document["author"]),
           document["name"],
           document["imageUrl"],
-          firstReview,
           context,
+          review: firstReview,
         );
         pins.add(pin);
       }
@@ -134,14 +134,14 @@ class Database {
       author,
       name,
       imageUrl,
-      Review(
+      context,
+      review: Review(
         initialReview.documentID,
         author,
         reviewContent,
         initialReviewMap["dateAdded"].toDate(),
         0,
       ),
-      context,
     );
   }
 

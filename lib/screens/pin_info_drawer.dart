@@ -114,6 +114,7 @@ class ReviewList extends StatelessWidget {
                           date: review.timestamp,
                           comment: review.body,
                           imgURL: pin.imageUrl,
+                          id: review.id,
                         )
                       : Center(
                           child: CircularProgressIndicator(),
