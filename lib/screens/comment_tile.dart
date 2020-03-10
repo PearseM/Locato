@@ -55,14 +55,12 @@ class PinListItem extends ListTile {
   const PinListItem({
     this.name,
     this.date,
-    this.comment,
-    this.imgURL
+    this.comment
   });
 
   final String name;
   final DateTime date;
   final String comment;
-  final String imgURL;
 
   @override
   Widget build (BuildContext context) {
@@ -82,34 +80,6 @@ class PinListItem extends ListTile {
           ),
           SizedBox(
             height: 60,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (context) {
-                    return Scaffold(
-                      appBar: AppBar(
-                        title: Text('Photo View'),
-                      ),
-                      body: PhotoView(
-                        imageProvider: NetworkImage(
-                          imgURL,
-                        ),
-                        minScale: PhotoViewComputedScale.contained,
-                        maxScale: PhotoViewComputedScale.covered * 2,
-                        backgroundDecoration: BoxDecoration(
-                          color: Theme.of(context).canvasColor,
-                        ),
-                      ),
-                    );
-                  },
-                )
-                );
-              },
-              child: Image.network(
-                imgURL,
-                height: MediaQuery.of(context).size.height,
-              ),
-            ),
           ),
         ],
       ),

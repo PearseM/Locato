@@ -74,7 +74,7 @@ class Pin {
       position: pin.location,
       onTap: () => showModalBottomSheet(
         context: context,
-        builder: (_) => PinInfoDrawer(formKey, pin),
+        builder: (_) => PinInfoDrawer(formKey, pin, pin.imageUrl),
         isScrollControlled: true,
       ),
     );

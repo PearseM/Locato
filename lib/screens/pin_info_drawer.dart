@@ -6,12 +6,14 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:photo_view/photo_view.dart';
 
 class PinInfoDrawer extends StatelessWidget {
   final GlobalKey<FormState> _formKey;
   final Pin pin;
+  final imgURL;
 
-  PinInfoDrawer(this._formKey, this.pin);
+  PinInfoDrawer(this._formKey, this.pin, this.imgURL);
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,34 @@ class PinInfoDrawer extends StatelessWidget {
               title: Text(pin.name),
               shape: Theme.of(context).bottomSheetTheme.shape,
               actions: <Widget>[
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) {
+                        return Scaffold(
+                          appBar: AppBar(
+                            title: Text('Photo View'),
+                          ),
+                          body: PhotoView(
+                            imageProvider: NetworkImage(
+                              imgURL,
+                            ),
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 2,
+                            backgroundDecoration: BoxDecoration(
+                              color: Theme.of(context).canvasColor,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    );
+                  },
+                  child: Image.network(
+                    imgURL,
+                    height: MediaQuery.of(context).size.height,
+                  ),
+                ),
                 IconButton(
                   icon: Icon(Icons.content_copy),
                   color: Colors.white,
@@ -113,7 +143,6 @@ class ReviewList extends StatelessWidget {
                           name: nameSnapshot.data ?? "Unknown",
                           date: review.timestamp,
                           comment: review.body,
-                          imgURL: pin.imageUrl,
                         )
                       : Center(
                           child: CircularProgressIndicator(),
