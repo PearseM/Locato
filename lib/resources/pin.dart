@@ -37,12 +37,14 @@ class Pin {
     this.author,
     this.name,
     this.imageUrl,
+    BuildContext context, {
     Review review,
-    BuildContext context,
-  ) {
+  }) {
     marker = _createMarker(context, this);
-    _reviews.add(review);
-    review.pin = this;
+    if (review != null) {
+      _reviews.add(review);
+      review.pin = this;
+    }
   }
 
   Set<Category> get categories => _categories;

@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/account.dart';
 import 'package:integrated_project/screens/user_comments.dart';
 import 'package:integrated_project/screens/flagged_comments.dart';
@@ -61,13 +63,26 @@ class _MapDrawerState extends State<MapDrawer> {
                   MaterialPageRoute(builder: (context) => AccountPage()));
             },
           ),
-          ListTile(
-            title: Text("Flagged Reviews"),
-            onTap: () {
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context) => FlaggedCommentsPage()));
-            },
-          ),
+          FutureBuilder(
+              future: Database.isAdmin(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return (snapshot.data)
+                      ? ListTile(
+                          title: Text("Flagged Reviews"),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        FlaggedCommentsPage()));
+                          },
+                        )
+                      : Container();
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              }),
         ],
       ),
     );
