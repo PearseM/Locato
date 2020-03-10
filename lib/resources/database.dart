@@ -94,7 +94,8 @@ class Database {
             snapshot.documentChanges.first.document;
         Review review = Review.fromMap(
             firstReviewDocument.documentID, firstReviewDocument.data);
-        return getPinByID(firstReviewDocument.data["pinID"], context).then((pin) {
+        return getPinByID(firstReviewDocument.data["pinID"], context)
+            .then((pin) {
           review.pin = pin;
           return review;
         });
@@ -260,6 +261,42 @@ class Database {
       }
       reviewsCompleter.complete(reviews);
       return reviewsCompleter.future;
+    });
+  }
+
+  /// Ignores any flags for this review.
+  ///
+  /// Deletes all flags that users have made for the review specified by [id].
+  static void ignoreFlags(String id) {
+    Firestore.instance
+        .collection("flags")
+        .where("reviewID")
+        .getDocuments()
+        .then((query) {
+      query.documents.forEach((document) {
+        document.reference.delete();
+      });
+    });
+  }
+
+  /// Deletes this review.
+  ///
+  /// Deletes [review] from the database, removing any flags that users created
+  /// for it and gives a strike to its author.
+  static void deleteReview(Review review) {
+    ignoreFlags(review.id);
+    Firestore.instance.collection("reviews").document(review.id).delete();
+    addStrike(review.author.id);
+  }
+
+  static void addStrike(String id) {
+    Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: id)
+        .getDocuments()
+        .then((query) {
+      query.documents.first.reference
+          .updateData({"strikes": FieldValue.increment(1)});
     });
   }
 }
