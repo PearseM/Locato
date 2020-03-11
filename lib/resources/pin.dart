@@ -37,12 +37,14 @@ class Pin {
     this.author,
     this.name,
     this.imageUrl,
+    BuildContext context, {
     Review review,
-    BuildContext context,
-  ) {
+  }) {
     marker = _createMarker(context, this);
-    _reviews.add(review);
-    review.pin = this;
+    if (review != null) {
+      _reviews.add(review);
+      review.pin = this;
+    }
   }
 
   Set<Category> get categories => _categories;
@@ -90,7 +92,8 @@ class Pin {
     return pin;
   }
 
-  static Map<String, dynamic> newPinMap(String name, LatLng location, Account author, String imageUrl) {
+  static Map<String, dynamic> newPinMap(
+      String name, LatLng location, Account author, String imageUrl) {
     Map<String, dynamic> pin = Map();
     pin["name"] = name;
     pin["location"] = GeoPoint(location.latitude, location.longitude);
@@ -103,12 +106,13 @@ class Pin {
   static Pin fromMap(String id, Map<String, dynamic> pinMap, Review review,
       BuildContext context) {
     return Pin(
-        id,
-        LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
-        Account(pinMap["author"]),
-        pinMap["name"],
-        pinMap["imageUrl"],
-        review,
-        context); //TODO think about this
+      id,
+      LatLng(pinMap["location"].latitude, pinMap["location"].longitude),
+      Account(pinMap["author"]),
+      pinMap["name"],
+      pinMap["imageUrl"],
+      context,
+      review: review,
+    );
   }
 }

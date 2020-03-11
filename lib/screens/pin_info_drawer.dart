@@ -143,6 +143,7 @@ class ReviewList extends StatelessWidget {
                           name: nameSnapshot.data ?? "Unknown",
                           date: review.timestamp,
                           comment: review.body,
+                          id: review.id,
                         )
                       : Center(
                           child: CircularProgressIndicator(),
