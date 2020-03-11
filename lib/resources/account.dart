@@ -88,7 +88,7 @@ class Account {
     return Database.reviewsByUser(currentAccount, context);
   }
 
-  static Future<List<String>> getABC(BuildContext context) {
+  static Future<List<Review>> getABC(BuildContext context) {
     return Database.favouriteReviewsForUser(currentAccount, context);
   }
 }

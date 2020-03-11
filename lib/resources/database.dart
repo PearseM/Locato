@@ -140,38 +140,54 @@ class Database {
   }
 
 
-  static Future<List<String>> favouriteReviewsForUser(Account account, BuildContext context) async {
-    List user = await Firestore.instance
-        .collection("users")
-        .where("userID", isEqualTo: account.id)
-        .getDocuments()
-        .then((val) => val.documents);
+  static Future<List<Review>> favouriteReviewsForUser(Account account, BuildContext context) async {
+    List<String> reviewIDs = await getFavouriteReviewsIDs(account);
+    List<Review> reviews = await getReviewsByReviewIDs(reviewIDs, context);
 
-    Firestore.instance
-        .collection("users")
-        .document(user[0].documentID.toString())
-        .collection("favourites").snapshots().listen(createList);
-
-
-
-    List<String> reviewIds = [];
-
-    return reviewIds;
 
   }
 
-  static Future<List<String>> createList(QuerySnapshot snapshot) async {
+  static Future<List<String>> getFavouriteReviewsIDs(Account account) async {
+    List users = await Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: account.id)
+        .getDocuments()
+        .then((value) => value.documents);
+
+    String user = users[0].documentID.toString();
+    List reviewDocs = await Firestore.instance
+        .collection("users")
+        .document(user)
+        .collection("favourites")
+        .getDocuments()
+        .then((val) => val.documents);
 
     List<String> reviewIds = [];
-
-    var docs = snapshot.documents;
-    for (var docky in docs) {
-      //reviewIds.add(docky.documentID);
-      print(docky.documentID.toString());
+    for (var reviewDoc in reviewDocs) {
+      reviewIds.add(reviewDoc.documentID.toString());
     }
+    print(reviewIds.toString());
 
     return reviewIds;
+  }
 
+  static Future<List<Review>> getReviewsByReviewIDs(List<String> reviewIDs, BuildContext context) async {
+    List<Review> reviews = [];
+
+    for (var reviewID in reviewIDs) {
+      QuerySnapshot snapshot = await Firestore.instance
+          .collection("pins")
+          .where(FieldPath.documentId, isEqualTo: reviewID)
+          .snapshots()
+          .first;
+      DocumentSnapshot docSnap = snapshot.documents.first;
+      Map<String, dynamic> reviewMap = docSnap.data;
+      Review review = Review.fromMap(docSnap.documentID, reviewMap);
+      review.pin = await getPinByID(reviewMap["pinID"], context);
+      reviews.add(review);
+    }
+
+    return reviews;
   }
 
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
