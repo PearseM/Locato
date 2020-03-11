@@ -2,16 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/resources/pin.dart';
 
 class Account {
   static Account currentAccount;
   final String id;
-
   String _userName;
   String _email;
 
-  int _visitedCount;
-
+  List<Pin> _visited = List<Pin>();
   List<Review> _reviews = List<Review>();
   List<Review> _helpful = List<Review>();
 
@@ -53,10 +52,15 @@ class Account {
     // TODO: update DB
   }
 
-  int get visitedCount => _visitedCount;
+  int get visitedCount => _visited.length;
 
-  void incVisitedCount() {
-    _visitedCount++;
+  void incVisited(Pin pin) {
+    _visited.add(pin);
+    // TODO: update DB
+  }
+
+  void decVisited(Pin pin) {
+    _visited.remove(pin);
     // TODO: update DB
   }
 
@@ -86,4 +90,7 @@ class Account {
   static Stream<List<Review>> getReviewsForUser(BuildContext context) {
     return Database.reviewsByUser(currentAccount, context);
   }
+//  static Stream<List<Pin>> getVisited(BuildContext context) {
+//    return Database.visitedByUser(currentAccount, context);
+//  }
 }

@@ -6,13 +6,20 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:integrated_project/resources/account.dart';
 
-class PinInfoDrawer extends StatelessWidget {
+class PinInfoDrawer extends StatefulWidget {
   final GlobalKey<FormState> _formKey;
   final Pin pin;
 
   PinInfoDrawer(this._formKey, this.pin);
 
+  @override
+  _PinInfoDrawerState createState() => _PinInfoDrawerState();
+}
+
+class _PinInfoDrawerState extends State<PinInfoDrawer> {
+  var pressAttention = false;
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -25,14 +32,14 @@ class PinInfoDrawer extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             AppBar(
-              title: Text(pin.name),
+              title: Text(widget.pin.name),
               shape: Theme.of(context).bottomSheetTheme.shape,
               actions: <Widget>[
                 IconButton(
                   icon: Icon(Icons.content_copy),
                   color: Colors.white,
                   onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: pin.id.hashCode.toString()));
+                    await Clipboard.setData(ClipboardData(text: widget.pin.id.hashCode.toString()));
                     showDialog(
                       context: context,
                       builder: (_) {
@@ -58,7 +65,7 @@ class PinInfoDrawer extends StatelessWidget {
                 ),
               ],
             ),
-            Expanded(child: ReviewList(pin, scrollController)),
+            Expanded(child: ReviewList(widget.pin, scrollController)),
           ],
         ),
         Container(
@@ -69,11 +76,27 @@ class PinInfoDrawer extends StatelessWidget {
               showModalBottomSheet(
                 isScrollControlled: true,
                 context: context,
-                builder: (_) => NewReviewForm(_formKey, pin),
+                builder: (_) => NewReviewForm(widget._formKey, widget.pin),
               ),
             ],
             icon: Icon(Icons.add),
             label: Text("Add review"),
+          ),
+        ),
+        Container(
+          alignment: Alignment.bottomLeft,
+          padding: EdgeInsets.all(8.0),
+          child: RaisedButton(
+            child: new Text('Visited'),
+            textColor: Colors.white,
+            shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(30.0),
+            ),
+            color: Database.visitedByUser(Account.currentAccount, context).contains(widget.pin.id) != null ? Colors.green : Colors.blue,
+            onPressed: () {
+              Database.addVisited(Account.currentAccount.id, widget.pin.id);
+              setState(() => pressAttention = !pressAttention);
+            },
           ),
         ),
       ]),

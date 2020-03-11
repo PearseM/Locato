@@ -3,6 +3,7 @@ import 'package:integrated_project/screens/comment_tile.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
 
+
 class UserCommentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,23 @@ class UserCommentsPage extends StatelessWidget {
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, false),
-            )),
+            ),
+          actions: <Widget>[
+            PopupMenuButton(
+              icon: Icon(
+                Icons.info_outline,
+                color: Colors.white,
+
+              ),
+                itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                  const PopupMenuItem(
+                      child: Text('\nOn this page are all the reviews you have made so far.\n'
+                        '\nYou can click on each one to take you to the pin they were written about\n'),
+                  ),
+                ]
+            )
+          ],
+        ),
         body: BodyLayout(),
       ),
     );
@@ -58,6 +75,7 @@ class _BodyLayoutState extends State<BodyLayout> {
                 date: review.timestamp,
                 comment: review.body,
                 location: review.pin.location,
+                imgURL: review.pin.imageUrl,
               );
             },
           );

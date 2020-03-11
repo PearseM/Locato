@@ -9,21 +9,30 @@ class YourReviewsListItem extends ListTile {
     this.date,
     this.comment,
     this.location,
+    this.imgURL,
   });
 
   final String name;
   final DateTime date;
   final String comment;
   final LatLng location;
+  final String imgURL;
+
 
   @override
   Widget build (BuildContext context) {
     return Padding (
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
       child: Row (
+        //crossAxisAlignment: CrossAxisAlignment.stretch,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          SizedBox(
+              height: 60,
+              width: 90,
+              child: Image.network(imgURL)
+          ),
           Expanded(
             flex: 3,
             child: CustomListItem(
@@ -208,7 +217,7 @@ class CustomListItem extends ListTile {
   }
 }
 
-class FlaggedReviewsListItem extends ListTile{
+class FlaggedReviewsListItem extends ListTile {
   const FlaggedReviewsListItem({
     this.name,
     this.date,
@@ -220,10 +229,10 @@ class FlaggedReviewsListItem extends ListTile{
   final String comment;
 
   @override
-  Widget build (BuildContext context) {
-    return Padding (
+  Widget build(BuildContext context) {
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row (
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -257,6 +266,5 @@ class FlaggedReviewsListItem extends ListTile{
       ),
 
     );
-
   }
 }
