@@ -57,15 +57,13 @@ class PinListItem extends StatefulWidget {
     this.name,
     this.date,
     this.comment,
-    this.id,
-    this.imgURL
+    this.id
   });
 
   final String name;
   final DateTime date;
   final String comment;
   final String id;
-  final String imgURL;
 
   @override
   _PinListItemState createState() => _PinListItemState();
