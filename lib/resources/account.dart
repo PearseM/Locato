@@ -84,6 +84,11 @@ class Account {
   }
 
   static Stream<List<Review>> getReviewsForUser(BuildContext context) {
+    print("");
     return Database.reviewsByUser(currentAccount, context);
+  }
+
+  static Future<List<String>> getABC(BuildContext context) {
+    return Database.favouriteReviewsForUser(currentAccount, context);
   }
 }

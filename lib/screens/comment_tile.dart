@@ -260,3 +260,45 @@ class FlaggedReviewsListItem extends ListTile{
 
   }
 }
+
+class StarredReviewsListItem extends ListTile{
+  const StarredReviewsListItem({
+    this.name,
+    this.date,
+    this.comment,
+  });
+
+  final String name;
+  final DateTime date;
+  final String comment;
+
+  @override
+  Widget build (BuildContext context) {
+    return Padding (
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+      child: Row (
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
+            flex: 3,
+            child: CustomListItem(
+              name: name,
+              date: date,
+              comment: comment,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.star),
+            iconSize: 40.0,
+            color: Color.fromRGBO(0, 255, 0, 1),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MapPage()));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

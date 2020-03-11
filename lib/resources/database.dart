@@ -139,6 +139,41 @@ class Database {
     });
   }
 
+
+  static Future<List<String>> favouriteReviewsForUser(Account account, BuildContext context) async {
+    List user = await Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: account.id)
+        .getDocuments()
+        .then((val) => val.documents);
+
+    Firestore.instance
+        .collection("users")
+        .document(user[0].documentID.toString())
+        .collection("favourites").snapshots().listen(createList);
+
+
+
+    List<String> reviewIds = [];
+
+    return reviewIds;
+
+  }
+
+  static Future<List<String>> createList(QuerySnapshot snapshot) async {
+
+    List<String> reviewIds = [];
+
+    var docs = snapshot.documents;
+    for (var docky in docs) {
+      //reviewIds.add(docky.documentID);
+      print(docky.documentID.toString());
+    }
+
+    return reviewIds;
+
+  }
+
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance
         .collection("pins")
