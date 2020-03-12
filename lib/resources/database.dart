@@ -187,26 +187,22 @@ class Database {
     Firestore.instance.collection("visited").add(v.asMap());
   }
 
-  static void deleteVisited(String user, String pin) {
-    String id;
-    Firestore.instance
+  static void deleteVisited(String user, String pin) async {
+    QuerySnapshot snapshot = await Firestore
+        .instance
         .collection("visited")
-        .where("userID", isEqualTo: user)
         .where("pin", isEqualTo: pin)
+        .where("userID", isEqualTo: user)
         .snapshots()
-        .asyncMap((querySnapshot) async {
-        for (DocumentSnapshot ds in querySnapshot.documents) {
-          print(ds.documentID);
-          id = ds.documentID;
-        }
+        .first;
 
-    });
+    String id = snapshot.documents.first.documentID;
+
     Firestore.instance
         .collection("visited")
         .document(id)
         .delete();
-    //print(id);
-  }
+    }
 
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance

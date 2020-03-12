@@ -23,7 +23,6 @@ class PinInfoDrawer extends StatefulWidget {
 class _PinInfoDrawerState extends State<PinInfoDrawer> {
   @override
   Widget build(BuildContext context) {
-    var pressAttention = false;
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.75,
@@ -116,26 +115,37 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
         Container(
           alignment: Alignment.bottomLeft,
           padding: EdgeInsets.all(8.0),
-          child: RaisedButton(
-            child: new Text('Visited'),
-            textColor: Colors.white,
-            shape: new RoundedRectangleBorder(
-              borderRadius: new BorderRadius.circular(60.0),
-            ),
-            color: Database.visitedByUser(Account.currentAccount, context).toString().contains(widget.pin.id)
-              ? Colors.green : Colors.blue,
-            onPressed: () {
-              if(Database.visitedByUser(Account.currentAccount, context).toString().contains(widget.pin.id)) {
-                print("yes");
-                print(widget.pin.id);
-                Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
+          child: StreamBuilder<List<String>>(
+            stream: Database.visitedByUser(Account.currentAccount, context),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return RaisedButton(
+                  child: new Text('Visited'),
+                  textColor: Colors.white,
+                  shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(60.0),
+                  ),
+                  color: snapshot.data.contains(widget.pin.id) ? Colors.green : Colors.blue,
+                  onPressed: () {
+                    if (snapshot.data.contains(widget.pin.id)) {
+                      Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
+                    } else {
+                      Database.addVisited(Account.currentAccount.id, widget.pin.id);
+                    }
+                  },
+                );
               } else {
-                print("no");
-                print(widget.pin.id);
-                //Database.addVisited(Account.currentAccount.id, widget.pin.id);
-                Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
+                return RaisedButton(
+                  child: new Text('Visited'),
+                  textColor: Colors.white,
+                  shape: new RoundedRectangleBorder(
+                    borderRadius: new BorderRadius.circular(60.0),
+                  ),
+                  color: Colors.blue,
+                  onPressed: () {
+                  },
+                );
               }
-              setState(() => pressAttention = !pressAttention);
             },
           ),
         ),
