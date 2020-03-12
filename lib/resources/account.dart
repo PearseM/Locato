@@ -91,4 +91,8 @@ class Account {
   static Future<List<Review>> getABC(BuildContext context) {
     return Database.favouriteReviewsForUser(currentAccount, context);
   }
+
+  static Stream<List<Review>> getDEF(BuildContext context) {
+    return Database.getFavouriteReviewsForUser(currentAccount, context);
+  }
 }

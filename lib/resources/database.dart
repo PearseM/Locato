@@ -140,11 +140,41 @@ class Database {
   }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  static Stream<List<Review>> getFavouriteReviewsForUser(Account account, BuildContext context) {
+    Future<List<String>> reviewIDsF = getFavouriteReviewsIDs(account);
+    Future<List<Review>> reviewsF = getReviewsByReviewIDs(reviewIDsF, context);
+    Stream<List<Review>> stream = new Stream.fromFuture(reviewsF);
+
+    return stream;
+  }
+
+
   static Future<List<Review>> favouriteReviewsForUser(Account account, BuildContext context) async {
-    List<String> reviewIDs = await getFavouriteReviewsIDs(account);
+    Future<List<String>> reviewIDs = getFavouriteReviewsIDs(account);
     List<Review> reviews = await getReviewsByReviewIDs(reviewIDs, context);
 
+    print(reviews.toString());
+    print(reviews[0].id);
+    print(reviews[0].author);
+    print(reviews[0].body);
 
+    return reviews;
   }
 
   static Future<List<String>> getFavouriteReviewsIDs(Account account) async {
@@ -171,12 +201,13 @@ class Database {
     return reviewIds;
   }
 
-  static Future<List<Review>> getReviewsByReviewIDs(List<String> reviewIDs, BuildContext context) async {
+  static Future<List<Review>> getReviewsByReviewIDs(Future<List<String>> reviewIDsF, BuildContext context) async {
     List<Review> reviews = [];
+    List<String> reviewIDs = await reviewIDsF;
 
     for (var reviewID in reviewIDs) {
       QuerySnapshot snapshot = await Firestore.instance
-          .collection("pins")
+          .collection("reviews")
           .where(FieldPath.documentId, isEqualTo: reviewID)
           .snapshots()
           .first;
@@ -189,6 +220,22 @@ class Database {
 
     return reviews;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance
