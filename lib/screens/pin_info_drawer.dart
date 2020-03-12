@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
+import 'package:photo_view/photo_view.dart';
 
-class PinInfoDrawer extends StatelessWidget {
+class PinInfoDrawer extends StatefulWidget {
   final GlobalKey<FormState> _formKey;
   final Pin pin;
+  final imgURL;
 
-  PinInfoDrawer(this._formKey, this.pin);
+  PinInfoDrawer(this._formKey, this.pin, this.imgURL);
 
   @override
+  _PinInfoDrawerState createState() => _PinInfoDrawerState();
+}
+
+class _PinInfoDrawerState extends State<PinInfoDrawer> {
+  @override
   Widget build(BuildContext context) {
+    var pressAttention = false;
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.75,
@@ -25,14 +34,42 @@ class PinInfoDrawer extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             AppBar(
-              title: Text(pin.name),
+              title: Text(widget.pin.name),
               shape: Theme.of(context).bottomSheetTheme.shape,
               actions: <Widget>[
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) {
+                        return Scaffold(
+                          appBar: AppBar(
+                            title: Text('Photo View'),
+                          ),
+                          body: PhotoView(
+                            imageProvider: NetworkImage(
+                              widget.imgURL,
+                            ),
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 2,
+                            backgroundDecoration: BoxDecoration(
+                              color: Theme.of(context).canvasColor,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    );
+                  },
+                  child: Image.network(
+                    widget.imgURL,
+                    height: MediaQuery.of(context).size.height,
+                  ),
+                ),
                 IconButton(
                   icon: Icon(Icons.content_copy),
                   color: Colors.white,
                   onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: pin.id.hashCode.toString()));
+                    await Clipboard.setData(ClipboardData(text: widget.pin.id.hashCode.toString()));
                     showDialog(
                       context: context,
                       builder: (_) {
@@ -58,7 +95,7 @@ class PinInfoDrawer extends StatelessWidget {
                 ),
               ],
             ),
-            Expanded(child: ReviewList(pin, scrollController)),
+            Expanded(child: ReviewList(widget.pin, scrollController)),
           ],
         ),
         Container(
@@ -69,11 +106,37 @@ class PinInfoDrawer extends StatelessWidget {
               showModalBottomSheet(
                 isScrollControlled: true,
                 context: context,
-                builder: (_) => NewReviewForm(_formKey, pin),
+                builder: (_) => NewReviewForm(widget._formKey, widget.pin),
               ),
             ],
             icon: Icon(Icons.add),
             label: Text("Add review"),
+          ),
+        ),
+        Container(
+          alignment: Alignment.bottomLeft,
+          padding: EdgeInsets.all(8.0),
+          child: RaisedButton(
+            child: new Text('Visited'),
+            textColor: Colors.white,
+            shape: new RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(60.0),
+            ),
+            color: Database.visitedByUser(Account.currentAccount, context).toString().contains(widget.pin.id)
+              ? Colors.green : Colors.blue,
+            onPressed: () {
+              if(Database.visitedByUser(Account.currentAccount, context).toString().contains(widget.pin.id)) {
+                print("yes");
+                print(widget.pin.id);
+                Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
+              } else {
+                print("no");
+                print(widget.pin.id);
+                //Database.addVisited(Account.currentAccount.id, widget.pin.id);
+                Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
+              }
+              setState(() => pressAttention = !pressAttention);
+            },
           ),
         ),
       ]),
@@ -113,7 +176,7 @@ class ReviewList extends StatelessWidget {
                           name: nameSnapshot.data ?? "Unknown",
                           date: review.timestamp,
                           comment: review.body,
-                          imgURL: pin.imageUrl,
+                          id: review.id,
                         )
                       : Center(
                           child: CircularProgressIndicator(),

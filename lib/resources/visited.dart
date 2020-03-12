@@ -2,6 +2,7 @@ class Visited{
   String user;
   String pin;
 
+
   Visited(String user, String pin) {
     this.user = user;
     this.pin = pin;

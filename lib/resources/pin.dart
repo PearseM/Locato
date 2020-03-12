@@ -18,6 +18,7 @@ enum Category {
 class Pin {
   String id;
   final LatLng location;
+
   final Account author;
   final String name;
   final String imageUrl;
