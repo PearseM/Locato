@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:integrated_project/main.dart';
+import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/sign_in.dart';
 import 'package:integrated_project/resources/account.dart';
@@ -48,7 +49,19 @@ class AccountPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
                     Column(children: [
-                      Text("16", textScaleFactor: 2.0),
+                      StreamBuilder<List<String>>(
+                        stream: Database.visitedByUser(Account.currentAccount, context),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return Text(
+                              snapshot.data.length.toString(),
+                              textScaleFactor: 2.0
+                            );
+                          } else {
+                            return CircularProgressIndicator();
+                          }
+                        },
+                      ),
                       Text("Pins visited"),
                     ]),
                     Column(children: [
