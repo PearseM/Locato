@@ -299,4 +299,16 @@ class Database {
           .updateData({"strikes": FieldValue.increment(1)});
     });
   }
+
+  static void updateUsername(String name) {
+    Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: Account.currentAccount.id)
+        .getDocuments()
+        .then((query) {
+      query.documents.first.reference.updateData({
+        "name": name,
+      });
+    });
+  }
 }

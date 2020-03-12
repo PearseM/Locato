@@ -39,6 +39,7 @@ class Account {
 
   static updateUserName(String value) async {
     Account.currentAccount._userName = value;
+    Database.updateUsername(value);
 
     FirebaseUser user = await FirebaseAuth.instance.currentUser();
     var newInfo = UserUpdateInfo();
