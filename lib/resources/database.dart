@@ -8,6 +8,7 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:integrated_project/resources/visited.dart';
 
 class Database {
   static Stream<List<Pin>> getPins(BuildContext context) {
@@ -165,6 +166,43 @@ class Database {
       return reviewsCompleter.future;
     });
   }
+  static Stream<List<String>> visitedByUser(
+      Account account, BuildContext context) {
+    return Firestore.instance
+        .collection("visited")
+        .where("userID", isEqualTo: account.id)
+        .snapshots()
+        .asyncMap((querySnapshot) async {
+      List<String> pins = [];
+      for (DocumentSnapshot documentSnapshot in querySnapshot.documents) {
+        Map<String, dynamic> visitedMap = documentSnapshot.data;
+        pins.add(visitedMap["pin"]);
+      }
+      return pins;
+    });
+  }
+
+  static void addVisited(String user, String pin) {
+    Visited v = new Visited(user,pin);
+    Firestore.instance.collection("visited").add(v.asMap());
+  }
+
+  static void deleteVisited(String user, String pin) async {
+    QuerySnapshot snapshot = await Firestore
+        .instance
+        .collection("visited")
+        .where("pin", isEqualTo: pin)
+        .where("userID", isEqualTo: user)
+        .snapshots()
+        .first;
+
+    String id = snapshot.documents.first.documentID;
+
+    Firestore.instance
+        .collection("visited")
+        .document(id)
+        .delete();
+    }
 
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance
