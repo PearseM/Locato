@@ -154,28 +154,29 @@ class DisplayNameFormState extends State<DisplayNameForm> {
     super.initState();
   }
 
-  void submitValue(value) async {
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    String oldDisplayName = user.displayName;
-    Account.updateUserName(value);
+  void submitValue(value) {
+    FirebaseAuth.instance.currentUser().then((user) {
+      String oldDisplayName = user.displayName;
+      Account.updateUserName(value);
 
-    setState(() => pending = false);
+      setState(() => pending = false);
 
-    SnackBar snackbar = SnackBar(
-      content: Text("Your display name was changed."),
-      action: SnackBarAction(
-        label: "Undo",
-        onPressed: () {
-          Account.updateUserName(oldDisplayName);
-          setState(() {
-            controller.text = oldDisplayName;
-          });
-        },
-      ),
-    );
-    Scaffold.of(context).showSnackBar(snackbar);
+      SnackBar snackbar = SnackBar(
+        content: Text("Your display name was changed."),
+        action: SnackBarAction(
+          label: "Undo",
+          onPressed: () {
+            Account.updateUserName(oldDisplayName);
+            setState(() {
+              controller.text = oldDisplayName;
+            });
+          },
+        ),
+      );
+      Scaffold.of(context).showSnackBar(snackbar);
 
-    formFocus.unfocus();
+      formFocus.unfocus();
+    });
   }
 
   @override

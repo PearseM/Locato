@@ -60,7 +60,17 @@ class _MapDrawerState extends State<MapDrawer> {
             title: Text("Account"),
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => AccountPage()));
+                      MaterialPageRoute(builder: (context) => AccountPage()))
+                  .then((value) {
+                Account.hasUpdated.future.then((_) {
+                  FirebaseAuth.instance.currentUser().then((user) {
+                    setState(() {
+                      _user = user;
+                    });
+                    print(user.displayName);
+                  });
+                });
+              });
             },
           ),
           FutureBuilder(
