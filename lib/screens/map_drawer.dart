@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/screens/account.dart';
+import 'package:integrated_project/screens/starred_comments.dart';
 import 'package:integrated_project/screens/user_comments.dart';
 import 'package:integrated_project/screens/flagged_comments.dart';
 import 'package:integrated_project/sign_in.dart';
@@ -49,6 +50,13 @@ class _MapDrawerState extends State<MapDrawer> {
             ),
           ),
           //TODO Add visited and reviews counts
+          ListTile(
+            title: Text("Favourite Reviews"),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => StarredCommentsPage()));
+            },
+          ),
           ListTile(
             title: Text("Your reviews"),
             onTap: () {

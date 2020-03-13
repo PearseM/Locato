@@ -71,6 +71,7 @@ class PinListItem extends StatefulWidget {
 
 class _PinListItemState extends State<PinListItem> {
   bool isFlagged = false;
+  bool isFavourite = false;
 
   @override
   void initState() {
@@ -79,6 +80,12 @@ class _PinListItemState extends State<PinListItem> {
         isFlagged = value;
       });
     });
+    Database.isFavourite(widget.id).then((value) {
+      setState(() {
+        isFavourite = value;
+      });
+    });
+
     super.initState();
   }
 
@@ -109,6 +116,18 @@ class _PinListItemState extends State<PinListItem> {
                 }
                 setState(() {
                   isFlagged = !isFlagged;
+                });
+              }),
+          IconButton(
+              icon: Icon(isFavourite ? Icons.star : Icons.star_border),
+              onPressed: () {
+                if (isFavourite) {
+                  Database.removeFavourite(widget.id);
+                } else {
+                  Database.addFavourite(widget.id);
+                }
+                setState(() {
+                  isFavourite = !isFavourite;
                 });
               })
         ],
@@ -217,6 +236,40 @@ class CustomListItem extends ListTile {
 //      },
       //selected: true,
       //trailing: Icon(Icons.keyboard_arrow_right),
+    );
+  }
+}
+
+class StarredReviewsListItem extends ListTile {
+  const StarredReviewsListItem(this.review);
+  final Review review;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+      child: Row (
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Expanded(
+            flex: 3,
+            child: CustomListItem(
+              name: review.pin.name,
+              date: review.timestamp,
+              comment: review.body,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close),
+            iconSize: 40.0,
+            color: Colors.red[600],
+            onPressed: () {
+              Database.removeFavourite(review.id);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
