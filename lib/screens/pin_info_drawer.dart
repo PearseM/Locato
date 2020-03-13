@@ -29,7 +29,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
       ),
       body: PhotoView(
         imageProvider: NetworkImage(
-          imgURL,
+          widget.imgURL,
         ),
         minScale: PhotoViewComputedScale.contained,
         maxScale: PhotoViewComputedScale.covered * 2,
@@ -46,7 +46,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
       builder: (_, scrollController) => Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: Text(pin.name),
+          title: Text(widget.pin.name),
           shape: Theme.of(context).bottomSheetTheme.shape,
           actions: <Widget>[
             GestureDetector(
@@ -55,7 +55,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                 MaterialPageRoute(builder: (context) => imageView),
               ),
               child: Image.network(
-                imgURL,
+                widget.imgURL,
                 height: MediaQuery.of(context).size.height,
               ),
             ),
@@ -65,132 +65,62 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                 color: Colors.white,
                 onPressed: () {
                   Clipboard.setData(
-                      ClipboardData(text: pin.id.hashCode.toString()));
+                      ClipboardData(text: widget.pin.id.hashCode.toString()));
                   Scaffold.of(context).showSnackBar(SnackBar(
                     content: Text("URL copied to clipboard."),
                   ));
                 },
               ),
             ),
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      minChildSize: 0.5,
-      maxChildSize: 0.75,
-      builder: (_, scrollController) => Stack(children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            AppBar(
-              title: Text(widget.pin.name),
-              shape: Theme.of(context).bottomSheetTheme.shape,
-              actions: <Widget>[
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) {
-                        return Scaffold(
-                          appBar: AppBar(
-                            title: Text('Photo View'),
-                          ),
-                          body: PhotoView(
-                            imageProvider: NetworkImage(
-                              widget.imgURL,
-                            ),
-                            minScale: PhotoViewComputedScale.contained,
-                            maxScale: PhotoViewComputedScale.covered * 2,
-                            backgroundDecoration: BoxDecoration(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                    );
-                  },
-                  child: Image.network(
-                    widget.imgURL,
-                    height: MediaQuery.of(context).size.height,
+          ],
+        ),
+        body: ReviewList(widget.pin, scrollController),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              StreamBuilder<List<String>>(
+                stream: Database.visitedByUser(Account.currentAccount, context),
+                builder: (context, snapshot) {
+                  return FloatingActionButton.extended(
+                    onPressed: (snapshot.hasData)
+                        ? () {
+                            if (snapshot.data.contains(widget.pin.id)) {
+                              Database.deleteVisited(
+                                  Account.currentAccount.id, widget.pin.id);
+                            } else {
+                              Database.addVisited(
+                                  Account.currentAccount.id, widget.pin.id);
+                            }
+                          }
+                        : () {},
+                    label: Text('Visited'),
+                    foregroundColor: Colors.white,
+                    backgroundColor: (snapshot.hasData)
+                        ? ((snapshot.data.contains(widget.pin.id))
+                            ? Colors.green
+                            : Colors.blue)
+                        : Colors.blue,
+                  );
+                },
+              ),
+              Spacer(),
+              FloatingActionButton.extended(
+                onPressed: () => [
+                  showModalBottomSheet(
+                    isScrollControlled: true,
+                    context: context,
+                    builder: (_) => NewReviewForm(widget._formKey, widget.pin),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.content_copy),
-                  color: Colors.white,
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: widget.pin.id.hashCode.toString()));
-                    showDialog(
-                      context: context,
-                      builder: (_) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.0)),
-                          content: Text(
-                            "You have copied the id of this pin to your clipboard.",
-                            textAlign: TextAlign.center,
-                          ),
-                          actions: <Widget>[
-                            new FlatButton(
-                              child: new Text("Close"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
+                ],
+                icon: Icon(Icons.add),
+                label: Text("Add review"),
+              ),
+            ],
+          ),
         ),
-        body: ReviewList(pin, scrollController),
-        floatingActionButton: Row(child: [FloatingActionButton.extended(
-          onPressed: () => [
-            showModalBottomSheet(
-              isScrollControlled: true,
-              context: context,
-              builder: (_) => NewReviewForm(widget._formKey, widget.pin),
-            ),
-          ],
-          icon: Icon(Icons.add),
-          label: Text("Add review"),
-        ),
-    StreamBuilder<List<String>>(
-    stream: Database.visitedByUser(Account.currentAccount, context),
-    builder: (context, snapshot) {
-    if (snapshot.hasData) {
-    return RaisedButton(
-    child: new Text('Visited'),
-    textColor: Colors.white,
-    shape: new RoundedRectangleBorder(
-    borderRadius: new BorderRadius.circular(60.0),
-    ),
-    color: snapshot.data.contains(widget.pin.id) ? Colors.green : Colors.blue,
-    onPressed: () {
-    if (snapshot.data.contains(widget.pin.id)) {
-    Database.deleteVisited(Account.currentAccount.id, widget.pin.id);
-    } else {
-    Database.addVisited(Account.currentAccount.id, widget.pin.id);
-    }
-    },
-    );
-    } else {
-    return RaisedButton(
-    child: new Text('Visited'),
-    textColor: Colors.white,
-    shape: new RoundedRectangleBorder(
-    borderRadius: new BorderRadius.circular(60.0),
-    ),
-    color: Colors.blue,
-    onPressed: () {
-    },
-    );
-    }
-    },
-    ),
-    ]),
       ),
     );
   }
