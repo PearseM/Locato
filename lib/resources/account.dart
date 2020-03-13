@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:integrated_project/resources/database.dart';
@@ -6,6 +8,7 @@ import 'package:integrated_project/resources/review.dart';
 class Account {
   static Account currentAccount;
   final String id;
+  static Completer hasUpdated;
 
   String _userName;
   String _email;
@@ -33,18 +36,24 @@ class Account {
   }
 
   Future<String> get userName async {
-    if (_userName != null) return _userName;
-    else return Database.getUserNameByID(id);
+    if (_userName != null)
+      return _userName;
+    else
+      return Database.getUserNameByID(id);
   }
 
-  static updateUserName(String value) async {
+  static updateUserName(String value) {
+    hasUpdated = Completer();
     Account.currentAccount._userName = value;
     Database.updateUsername(value);
 
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    var newInfo = UserUpdateInfo();
-    newInfo.displayName = value;
-    user.updateProfile(newInfo);
+    FirebaseAuth.instance.currentUser().then((user) {
+      var newInfo = UserUpdateInfo();
+      newInfo.displayName = value;
+      user.updateProfile(newInfo).then((_) {
+        hasUpdated.complete();
+      });
+    });
   }
 
   String get email => _email;
