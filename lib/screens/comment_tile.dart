@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/map.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:integrated_project/resources/account.dart';
 
 class YourReviewsListItem extends ListTile {
   const YourReviewsListItem({
@@ -261,20 +264,13 @@ class FlaggedReviewsListItem extends ListTile{
   }
 }
 
-class StarredReviewsListItem extends ListTile{
-  const StarredReviewsListItem({
-    this.name,
-    this.date,
-    this.comment,
-  });
-
-  final String name;
-  final DateTime date;
-  final String comment;
+class StarredReviewsListItem extends ListTile {
+  const StarredReviewsListItem(this.review);
+  final Review review;
 
   @override
-  Widget build (BuildContext context) {
-    return Padding (
+  Widget build(BuildContext context) {
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
       child: Row (
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,18 +279,17 @@ class StarredReviewsListItem extends ListTile{
           Expanded(
             flex: 3,
             child: CustomListItem(
-              name: name,
-              date: date,
-              comment: comment,
+              name: review.pin.name,
+              date: review.timestamp,
+              comment: review.body,
             ),
           ),
           IconButton(
-            icon: Icon(Icons.star),
+            icon: Icon(Icons.close),
             iconSize: 40.0,
-            color: Color.fromRGBO(0, 255, 0, 1),
+            color: Colors.red[600],
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MapPage()));
+              Database.removeFavourite(Account.currentAccount, review.id);
             },
           ),
         ],

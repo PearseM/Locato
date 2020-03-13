@@ -88,10 +88,6 @@ class Account {
     return Database.reviewsByUser(currentAccount, context);
   }
 
-  static Future<List<Review>> getABC(BuildContext context) {
-    return Database.favouriteReviewsForUser(currentAccount, context);
-  }
-
   static Stream<List<Review>> getDEF(BuildContext context) {
     return Database.getFavouriteReviewsForUser(currentAccount, context);
   }

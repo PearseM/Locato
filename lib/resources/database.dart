@@ -164,19 +164,6 @@ class Database {
     return stream;
   }
 
-
-  static Future<List<Review>> favouriteReviewsForUser(Account account, BuildContext context) async {
-    Future<List<String>> reviewIDs = getFavouriteReviewsIDs(account);
-    List<Review> reviews = await getReviewsByReviewIDs(reviewIDs, context);
-
-    print(reviews.toString());
-    print(reviews[0].id);
-    print(reviews[0].author);
-    print(reviews[0].body);
-
-    return reviews;
-  }
-
   static Future<List<String>> getFavouriteReviewsIDs(Account account) async {
     List users = await Firestore.instance
         .collection("users")
@@ -221,8 +208,37 @@ class Database {
     return reviews;
   }
 
+  static addFavourite(Account account, String reviewID) async {
+    List users = await Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: account.id)
+        .getDocuments()
+        .then((value) => value.documents);
+    String user = users[0].documentID.toString();
 
+    final CollectionReference favouritesRef = Firestore.instance
+        .collection("users")
+        .document(user)
+        .collection("favourites");
 
+    await favouritesRef.document(reviewID).setData(newFavouriteMap());
+  }
+
+  static Map<String, dynamic> newFavouriteMap() {
+    Map<String, dynamic> favourite = Map();
+    return favourite;
+  }
+
+  static removeFavourite(Account account, String reviewID) async {
+    List users = await Firestore.instance
+        .collection("users")
+        .where("userID", isEqualTo: account.id)
+        .getDocuments()
+        .then((value) => value.documents);
+    String user = users[0].documentID.toString();
+
+    Firestore.instance.collection("users").document(user).collection("favourites").document(reviewID).delete();
+  }
 
 
 

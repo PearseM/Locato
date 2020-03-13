@@ -35,7 +35,7 @@ class _BodyLayoutState extends State<BodyLayout> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Review>>(
-      stream: Account.getDEF(context),
+      stream: Account.getReviewsForUser(context),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
