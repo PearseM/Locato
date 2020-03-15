@@ -49,6 +49,7 @@ class _BodyLayoutState extends State<BodyLayout> {
                       date: review.timestamp,
                       comment: review.body,
                       location: review.pin.location,
+                      url: review.pin.imageUrl,
                     );
                   },
                 )
