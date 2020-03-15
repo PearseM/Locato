@@ -9,7 +9,7 @@ class FlaggedCommentsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
           automaticallyImplyLeading: true,
-          title: Text('Your Reviews'),
+          title: Text('Flagged Reviews'),
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, false),

@@ -1,3 +1,5 @@
+//import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
 import 'package:integrated_project/resources/review.dart';
@@ -13,7 +15,21 @@ class UserCommentsPage extends StatelessWidget {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, false),
-          )),
+          ),
+        actions: <Widget>[
+          PopupMenuButton(
+            icon: Icon(
+              Icons.info_outline,
+              color: Colors.white,
+            ), itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+              const PopupMenuItem(
+                child: Text("\nHere is a list of all the reviews you have made.\n"
+                    "\nYou can click on each one to go to the pin it was written about.\n"),
+              ),
+          ],
+          )
+        ],
+      ),
       body: BodyLayout(),
     );
   }

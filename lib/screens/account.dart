@@ -17,7 +17,23 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: Text("Account Settings")),
+      appBar: AppBar(
+        title: Text("Account Settings"),
+        actions: <Widget>[
+          PopupMenuButton(
+            icon: Icon(
+              Icons.info_outline,
+              color: Colors.white,
+            ),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+              const PopupMenuItem(
+                child: Text("\nThis is the account info page.\n"
+                    "\nYou can change username, view number of pins visited, number of reviews written and sign out/delete your account.\n"),
+              ),
+            ],
+          )
+        ],
+      ),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => formKey.currentState?.formFocus?.unfocus(),

@@ -10,7 +10,7 @@ class YourReviewsListItem extends ListTile {
     this.date,
     this.comment,
     this.location,
-    this.url
+    this.url,
   });
 
   final String name;
@@ -28,7 +28,7 @@ class YourReviewsListItem extends ListTile {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Image.network(
-          url, height: 65, width: 100,),
+            url, height: 65, width: 100,),
           Expanded(
             flex: 3,
             child: CustomListItem(
