@@ -476,7 +476,7 @@ class BottomBarNav extends StatelessWidget {
             itemBuilder: (BuildContext context) => <PopupMenuEntry> [
               const PopupMenuItem(
                 child: Text("\nThis is the map. Navigate around and click on pins made by users.\n\n"
-                    "You can add your own pin by clicking the plus button and centreing the screen on the correct location.\n\n"
+                    "You can add your own pin by clicking the plus button and centring the screen on the correct location.\n\n"
                     "Alternatively, search for a pin using the search icon.\n"),
               ),
             ],

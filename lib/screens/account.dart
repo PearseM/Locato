@@ -28,7 +28,7 @@ class AccountPage extends StatelessWidget {
             itemBuilder: (BuildContext context) => <PopupMenuEntry> [
               const PopupMenuItem(
                 child: Text("\nThis is the account info page.\n"
-                    "\nYou can change username, view number of pins visited, nunber of reviews written and signout/delete your account.\n"),
+                    "\nYou can change username, view number of pins visited, number of reviews written and sign out/delete your account.\n"),
               ),
             ],
           )
