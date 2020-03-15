@@ -23,32 +23,44 @@ class StarredCommentsPage extends StatelessWidget {
 class BodyLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Review>>(
-      stream: Account.getDEF(context),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        } else {
-          if (snapshot.data.length > 0) {
-            return ListView.separated(
-              separatorBuilder: (context, index) => Divider(
-                color: Colors.black,
-              ),
-              itemCount: snapshot.data.length,
-              itemBuilder: (context, index) {
-                Review review = snapshot.data[index];
-                return StarredReviewsListItem(review);
+    return FutureBuilder(
+      future: Account.getDEF(context),
+      builder: (context, snapshot) => (snapshot.hasData)
+          ? StreamBuilder<List<Review>>(
+              stream: snapshot.data,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else {
+                  if (snapshot.hasData) {
+                    return ListView.separated(
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.black,
+                      ),
+                      itemCount: snapshot.data.length,
+                      itemBuilder: (context, index) {
+                        Review review = snapshot.data[index];
+                        return StarredReviewsListItem(review);
+                      },
+                    );
+                  } else {
+                    return Center(
+                      child: Text("You have no favourite reviews."),
+                    );
+                  }
+                }
               },
-            );
-          } else {
-            return Center(
-              child: Text("You have no favourite reviews."),
-            );
-          }
-        }
-      },
+            )
+          : Center(
+              child: Column(
+                children: <Widget>[
+                  Text("Loading user data"),
+                  CircularProgressIndicator(),
+                ],
+              ),
+            ),
     );
   }
 }

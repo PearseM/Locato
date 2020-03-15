@@ -166,6 +166,7 @@ class Database {
       return reviewsCompleter.future;
     });
   }
+
   static Stream<List<String>> visitedByUser(
       Account account, BuildContext context) {
     return Firestore.instance
@@ -183,13 +184,12 @@ class Database {
   }
 
   static void addVisited(String user, String pin) {
-    Visited v = new Visited(user,pin);
+    Visited v = new Visited(user, pin);
     Firestore.instance.collection("visited").add(v.asMap());
   }
 
   static void deleteVisited(String user, String pin) async {
-    QuerySnapshot snapshot = await Firestore
-        .instance
+    QuerySnapshot snapshot = await Firestore.instance
         .collection("visited")
         .where("pin", isEqualTo: pin)
         .where("userID", isEqualTo: user)
@@ -198,11 +198,8 @@ class Database {
 
     String id = snapshot.documents.first.documentID;
 
-    Firestore.instance
-        .collection("visited")
-        .document(id)
-        .delete();
-    }
+    Firestore.instance.collection("visited").document(id).delete();
+  }
 
   static Future<Pin> getPinByID(String pinID, BuildContext context) async {
     QuerySnapshot snapshot = await Firestore.instance
@@ -350,65 +347,51 @@ class Database {
     });
   }
 
-
-
-
-
-
-
-
-
-
-  static Stream<List<Review>> getFavouriteReviewsForUser(Account account, BuildContext context) {
-    Future<List<String>> reviewIDsF = getFavouriteReviewsIDs(account);
-    Future<List<Review>> reviewsF = getReviewsByReviewIDs(reviewIDsF, context);
-    Stream<List<Review>> stream = new Stream.fromFuture(reviewsF);
-
-    return stream;
+  static Future<Stream<List<Review>>> getFavouriteReviewsForUser(
+      Account account, BuildContext context) {
+    return getFavouriteReviewsIDs(account).then((idStream) {
+      return idStream
+          .asyncMap((snapshot) => getReviewsByReviewIDs(snapshot, context));
+    });
   }
 
-  static Future<List<String>> getFavouriteReviewsIDs(Account account) async {
-    List users = await Firestore.instance
+  static Future<Stream<List<String>>> getFavouriteReviewsIDs(Account account) {
+    return Firestore.instance
         .collection("users")
         .where("userID", isEqualTo: account.id)
         .getDocuments()
-        .then((value) => value.documents);
-
-    String user = users[0].documentID.toString();
-    List reviewDocs = await Firestore.instance
-        .collection("users")
-        .document(user)
-        .collection("favourites")
-        .getDocuments()
-        .then((val) => val.documents);
-
-    List<String> reviewIds = [];
-    for (var reviewDoc in reviewDocs) {
-      reviewIds.add(reviewDoc.documentID.toString());
-    }
-    print(reviewIds.toString());
-
-    return reviewIds;
+        .then((userSnapshot) {
+      String userID = userSnapshot.documents.first.documentID;
+      return Firestore.instance
+          .collection("users")
+          .document(userID)
+          .collection("favourites")
+          .snapshots()
+          .map((snapshot) {
+        List<String> reviewIDs = [];
+        for (DocumentSnapshot document in snapshot.documents) {
+          reviewIDs.add(document.documentID);
+        }
+        return reviewIDs;
+      });
+    });
   }
 
-  static Future<List<Review>> getReviewsByReviewIDs(Future<List<String>> reviewIDsF, BuildContext context) async {
-    List<Review> reviews = [];
-    List<String> reviewIDs = await reviewIDsF;
-
-    for (var reviewID in reviewIDs) {
-      QuerySnapshot snapshot = await Firestore.instance
-          .collection("reviews")
-          .where(FieldPath.documentId, isEqualTo: reviewID)
-          .snapshots()
-          .first;
-      DocumentSnapshot docSnap = snapshot.documents.first;
-      Map<String, dynamic> reviewMap = docSnap.data;
-      Review review = Review.fromMap(docSnap.documentID, reviewMap);
-      review.pin = await getPinByID(reviewMap["pinID"], context);
-      reviews.add(review);
-    }
-
-    return reviews;
+  static Future<List<Review>> getReviewsByReviewIDs(
+      List<String> reviewIDs, BuildContext context) {
+    return Firestore.instance
+        .collection("reviews")
+        .where(FieldPath.documentId, whereIn: reviewIDs)
+        .getDocuments()
+        .then((snapshot) async {
+      List<Review> reviews = [];
+      for (DocumentSnapshot document in snapshot.documents) {
+        Review review = Review.fromMap(document.documentID, document.data);
+        review.pin = await getPinByID(document.data["pinID"], context);
+        reviews.add(review);
+      }
+      return reviews;
+    });
   }
 
   static addFavourite(String reviewID) async {
@@ -432,19 +415,27 @@ class Database {
     return favourite;
   }
 
-  static removeFavourite(String reviewID) async {
-    List users = await Firestore.instance
+  static removeFavourite(String reviewID) {
+    Firestore.instance
         .collection("users")
         .where("userID", isEqualTo: Account.currentAccount.id)
         .getDocuments()
-        .then((value) => value.documents);
-    String user = users[0].documentID.toString();
-
-    Firestore.instance.collection("users").document(user).collection("favourites").document(reviewID).delete();
+        .then((userSnapshot) {
+      String user = userSnapshot.documents.first.documentID;
+      Firestore.instance
+          .collection("users")
+          .document(user)
+          .collection("favourites")
+          .document(reviewID)
+          .delete();
+    });
   }
 
   static Future<bool> isFavourite(String reviewID) async {
-    List<String> reviewIDs = await getFavouriteReviewsIDs(Account.currentAccount);
-    return reviewIDs.contains(reviewID);
+    return getFavouriteReviewsIDs(Account.currentAccount).then((snapshots) {
+      return snapshots.first.then((reviewIDs) {
+        return reviewIDs.contains(reviewID);
+      });
+    });
   }
 }
