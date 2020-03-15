@@ -10,12 +10,14 @@ class YourReviewsListItem extends ListTile {
     this.date,
     this.comment,
     this.location,
+    this.url
   });
 
   final String name;
   final DateTime date;
   final String comment;
   final LatLng location;
+  final String url;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,8 @@ class YourReviewsListItem extends ListTile {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
+          Image.network(
+          url, height: 65, width: 100,),
           Expanded(
             flex: 3,
             child: CustomListItem(
