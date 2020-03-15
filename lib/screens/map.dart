@@ -468,6 +468,19 @@ class BottomBarNav extends StatelessWidget {
           ),
         ),
         Spacer(),
+          PopupMenuButton(
+            icon: Icon(
+              Icons.info_outline,
+              color: Colors.black,
+            ),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+              const PopupMenuItem(
+                child: Text("\nThis is the map. Navigate around and click on pins made by users.\n\n"
+                    "You can add your own pin by clicking the plus button and centreing the screen on the correct location.\n\n"
+                    "Alternatively, search for a pin using the search icon.\n"),
+              ),
+            ],
+          ),
         IconButton(
           onPressed: () async {
             Pin pin = await showSearch(
