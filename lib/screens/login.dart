@@ -28,7 +28,7 @@ class LoginScreenState extends State<LoginScreen> {
               ),
               Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Image.asset("assets/logo.jpeg"),
+                child: Image.asset("assets/logo.png"),
               ),
               GoogleSignInButton(
                 onPressed: () async {
