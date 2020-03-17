@@ -305,7 +305,7 @@ class Database {
   static void ignoreFlags(String id) {
     Firestore.instance
         .collection("flags")
-        .where("reviewID")
+        .where("reviewID", isEqualTo: id)
         .getDocuments()
         .then((query) {
       query.documents.forEach((document) {

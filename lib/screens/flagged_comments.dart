@@ -30,7 +30,7 @@ class BodyLayout extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         } else {
-          if (snapshot.data.length > 0) {
+          if (snapshot.hasData && snapshot.data.length > 0) {
             return ListView.separated(
               separatorBuilder: (context, index) => Divider(
                 color: Colors.black,
