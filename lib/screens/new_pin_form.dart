@@ -35,6 +35,8 @@ class NewPinFormState extends State<NewPinForm> {
                     height: 100.0,
                     padding: EdgeInsets.all(4.0),
                     child: OutlineButton(
+                      clipBehavior: Clip.antiAlias,
+                      padding: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4.0),
                       ),
@@ -52,7 +54,13 @@ class NewPinFormState extends State<NewPinForm> {
                               Icons.add_photo_alternate,
                               semanticLabel: "Add image",
                             )
-                          : Image.file(image),
+                          : Image.file(
+                              image,
+                              width: 100.0,
+                              height: 100.0,
+                              semanticLabel: "Uploaded image",
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   state.hasError
