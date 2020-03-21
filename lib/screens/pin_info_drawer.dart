@@ -25,7 +25,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
   Widget build(BuildContext context) {
     Widget imageView = Scaffold(
       appBar: AppBar(
-        title: Text('Photo View'),
+        title: Text(widget.pin.name),
       ),
       body: PhotoView(
         imageProvider: NetworkImage(
@@ -85,7 +85,9 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
               ),
               child: Image.network(
                 widget.imgURL,
+                width: 50.0,
                 height: MediaQuery.of(context).size.height,
+                fit: BoxFit.cover,
               ),
             ),
             Builder(
