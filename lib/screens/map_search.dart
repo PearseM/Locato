@@ -13,7 +13,10 @@ class MapSearchDelegate extends SearchDelegate<Pin> {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: Icon(
+          Icons.clear,
+          semanticLabel: "Clear",
+        ),
         onPressed: () {
           query = ''; // reset query on clear
         },
@@ -44,7 +47,7 @@ class MapSearchDelegate extends SearchDelegate<Pin> {
         if (pin.id.hashCode == int.parse(query)) {
           results.add(pin);
         }
-      } catch(e) {}
+      } catch (e) {}
     }
 
     return ListView.separated(

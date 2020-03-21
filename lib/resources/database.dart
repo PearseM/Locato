@@ -6,7 +6,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:integrated_project/resources/visited.dart';
 
@@ -37,12 +36,6 @@ class Database {
       pinsListCompleter.complete(pins);
       return pinsListCompleter.future;
     });
-  }
-
-  static Future<File> getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-
-    return image;
   }
 
   static Stream<List<Review>> getReviewsForPin(String pinID) {
@@ -106,14 +99,13 @@ class Database {
   }
 
   static Future<Pin> newPin(LatLng location, String name, String reviewContent,
-      Account author, Future<File> image, BuildContext context) async {
+      Account author, File image, BuildContext context) async {
     //Add the image to the database
-    File actualImage = await image;
     var timeKey = new DateTime.now();
     final StorageReference postImageRef =
         FirebaseStorage.instance.ref().child("Pin Images");
     final StorageUploadTask uploadTask =
-        postImageRef.child(timeKey.toString() + ".jpg").putFile(actualImage);
+        postImageRef.child(timeKey.toString() + ".jpg").putFile(image);
     var imageUrl = await (await uploadTask.onComplete).ref.getDownloadURL();
     print(imageUrl);
 

@@ -25,7 +25,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
   Widget build(BuildContext context) {
     Widget imageView = Scaffold(
       appBar: AppBar(
-        title: Text('Photo View'),
+        title: Text(widget.pin.name),
       ),
       body: PhotoView(
         imageProvider: NetworkImage(
@@ -38,6 +38,72 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
         ),
       ),
     );
+
+    Widget visitedButton = StreamBuilder<List<String>>(
+      stream: Database.visitedByUser(Account.currentAccount, context),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container();
+        }
+
+        return Padding(
+          padding: EdgeInsets.all(8.0),
+          child: RaisedButton(
+            child: Text("Visited"),
+            onPressed: () {
+              if (snapshot.data.contains(widget.pin.id)) {
+                Database.deleteVisited(
+                    Account.currentAccount.id, widget.pin.id);
+              } else {
+                Database.addVisited(Account.currentAccount.id, widget.pin.id);
+              }
+            },
+            shape: StadiumBorder(),
+            color: snapshot.data.contains(widget.pin.id)
+                ? Colors.green
+                : Theme.of(context).primaryColorDark,
+            textColor: Theme.of(context).primaryTextTheme.button.color,
+          ),
+        );
+      },
+    );
+
+    Widget image = GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => imageView),
+      ),
+      child: Image.network(
+        widget.imgURL,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) {
+            return child;
+          }
+          return Center(
+            child: CircularProgressIndicator(backgroundColor: Colors.white),
+          );
+        },
+        width: 50.0,
+        height: MediaQuery.of(context).size.height,
+        fit: BoxFit.cover,
+      ),
+    );
+
+    Widget copyURLButton = IconButton(
+      icon: Icon(
+        Icons.content_copy,
+        semanticLabel: "Copy URL",
+      ),
+      color: Colors.white,
+      onPressed: () {
+        Clipboard.setData(
+            ClipboardData(text: widget.pin.id.hashCode.toString()));
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("URL copied to clipboard."),
+        ));
+      },
+    );
+
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.75,
@@ -49,77 +115,21 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
           title: Text(widget.pin.name),
           shape: Theme.of(context).bottomSheetTheme.shape,
           actions: <Widget>[
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => imageView),
-              ),
-              child: Image.network(
-                widget.imgURL,
-                height: MediaQuery.of(context).size.height,
-              ),
-            ),
-            Builder(
-              builder: (context) => IconButton(
-                icon: Icon(Icons.content_copy),
-                color: Colors.white,
-                onPressed: () {
-                  Clipboard.setData(
-                      ClipboardData(text: widget.pin.id.hashCode.toString()));
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    content: Text("URL copied to clipboard."),
-                  ));
-                },
-              ),
-            ),
+            visitedButton,
+            image,
+            copyURLButton,
           ],
         ),
         body: ReviewList(widget.pin, scrollController),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              StreamBuilder<List<String>>(
-                stream: Database.visitedByUser(Account.currentAccount, context),
-                builder: (context, snapshot) {
-                  return FloatingActionButton.extended(
-                    onPressed: (snapshot.hasData)
-                        ? () {
-                            if (snapshot.data.contains(widget.pin.id)) {
-                              Database.deleteVisited(
-                                  Account.currentAccount.id, widget.pin.id);
-                            } else {
-                              Database.addVisited(
-                                  Account.currentAccount.id, widget.pin.id);
-                            }
-                          }
-                        : () {},
-                    label: Text('Visited'),
-                    foregroundColor: Colors.white,
-                    backgroundColor: (snapshot.hasData)
-                        ? ((snapshot.data.contains(widget.pin.id))
-                            ? Colors.green
-                            : Colors.blue)
-                        : Colors.blue,
-                  );
-                },
-              ),
-              Spacer(),
-              FloatingActionButton.extended(
-                onPressed: () => [
-                  showModalBottomSheet(
-                    isScrollControlled: true,
-                    context: context,
-                    builder: (_) => NewReviewForm(widget._formKey, widget.pin),
-                  ),
-                ],
-                icon: Icon(Icons.add),
-                label: Text("Add review"),
-              ),
-            ],
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: FloatingActionButton(
+          tooltip: "Write review",
+          onPressed: () => showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (_) => NewReviewForm(widget._formKey, widget.pin),
           ),
+          child: Icon(Icons.create),
         ),
       ),
     );
