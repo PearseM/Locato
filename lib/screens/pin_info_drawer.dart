@@ -49,6 +49,35 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
           title: Text(widget.pin.name),
           shape: Theme.of(context).bottomSheetTheme.shape,
           actions: <Widget>[
+            StreamBuilder<List<String>>(
+                stream: Database.visitedByUser(Account.currentAccount, context),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Container();
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: RaisedButton(
+                      child: Text("Visited"),
+                      onPressed: () {
+                        if (snapshot.data.contains(widget.pin.id)) {
+                          Database.deleteVisited(
+                              Account.currentAccount.id, widget.pin.id);
+                        } else {
+                          Database.addVisited(
+                              Account.currentAccount.id, widget.pin.id);
+                        }
+                      },
+                      shape: StadiumBorder(),
+                      color: snapshot.data.contains(widget.pin.id)
+                          ? Colors.green
+                          : Theme.of(context).primaryColorDark,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.button.color,
+                    ),
+                  );
+                }),
             GestureDetector(
               onTap: () => Navigator.push(
                 context,
@@ -75,51 +104,14 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
           ],
         ),
         body: ReviewList(widget.pin, scrollController),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              StreamBuilder<List<String>>(
-                stream: Database.visitedByUser(Account.currentAccount, context),
-                builder: (context, snapshot) {
-                  return FloatingActionButton.extended(
-                    onPressed: (snapshot.hasData)
-                        ? () {
-                            if (snapshot.data.contains(widget.pin.id)) {
-                              Database.deleteVisited(
-                                  Account.currentAccount.id, widget.pin.id);
-                            } else {
-                              Database.addVisited(
-                                  Account.currentAccount.id, widget.pin.id);
-                            }
-                          }
-                        : () {},
-                    label: Text('Visited'),
-                    foregroundColor: Colors.white,
-                    backgroundColor: (snapshot.hasData)
-                        ? ((snapshot.data.contains(widget.pin.id))
-                            ? Colors.green
-                            : Colors.blue)
-                        : Colors.blue,
-                  );
-                },
-              ),
-              Spacer(),
-              FloatingActionButton.extended(
-                onPressed: () => [
-                  showModalBottomSheet(
-                    isScrollControlled: true,
-                    context: context,
-                    builder: (_) => NewReviewForm(widget._formKey, widget.pin),
-                  ),
-                ],
-                icon: Icon(Icons.add),
-                label: Text("Add review"),
-              ),
-            ],
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => showModalBottomSheet(
+            isScrollControlled: true,
+            context: context,
+            builder: (_) => NewReviewForm(widget._formKey, widget.pin),
           ),
+          child: Icon(Icons.create),
         ),
       ),
     );
