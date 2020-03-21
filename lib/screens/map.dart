@@ -84,9 +84,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   ///
   /// Requires the location of the pin, a name and the first review to be
   /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, String reviewContent, Future<File> image) async {
-    Pin pin =
-        await Database.newPin(location.target, name, reviewContent, _account, image, context);
+  void createPin(CameraPosition location, String name, String reviewContent,
+      File image) async {
+    Pin pin = await Database.newPin(
+        location.target, name, reviewContent, _account, image, context);
     setState(() {
       pins.add(pin);
     });
@@ -169,35 +170,13 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       onPressed: () {
         if (formKey.currentState.validate()) {
-          NewPinForm form = formKey.currentContext
-              .findAncestorWidgetOfExactType<NewPinForm>();
+          NewPinFormState form =
+              formKey.currentContext.findAncestorStateOfType<NewPinFormState>();
           String pinName = form.nameController.text;
+          File image = form.image;
 
-          showDialog(
-            context: context,
-            builder: (_) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0)),
-                content: Text(
-                  "Please select an image.",
-                  textAlign: TextAlign.center,
-                ),
-                actions: <Widget>[
-                  new FlatButton(
-                    child: new Text("Ok"),
-                    onPressed: () {
-                      var image = Database.getImage();
-                      createPin(
-                          currentMapPosition, pinName, form.bodyController.text, image);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-
+          createPin(
+              currentMapPosition, pinName, form.bodyController.text, image);
           closeDrawer();
         }
       },
@@ -468,19 +447,20 @@ class BottomBarNav extends StatelessWidget {
           ),
         ),
         Spacer(),
-          PopupMenuButton(
-            icon: Icon(
-              Icons.info_outline,
-              color: Colors.black,
-            ),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry> [
-              const PopupMenuItem(
-                child: Text("\nThis is the map. Navigate around and click on pins made by users.\n\n"
-                    "You can add your own pin by clicking the plus button and centring the screen on the correct location.\n\n"
-                    "Alternatively, search for a pin using the search icon.\n"),
-              ),
-            ],
+        PopupMenuButton(
+          icon: Icon(
+            Icons.info_outline,
+            color: Colors.black,
           ),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+            const PopupMenuItem(
+              child: Text(
+                  "\nThis is the map. Navigate around and click on pins made by users.\n\n"
+                  "You can add your own pin by clicking the plus button and centring the screen on the correct location.\n\n"
+                  "Alternatively, search for a pin using the search icon.\n"),
+            ),
+          ],
+        ),
         IconButton(
           onPressed: () async {
             Pin pin = await showSearch(

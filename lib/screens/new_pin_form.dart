@@ -1,24 +1,70 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
-class NewPinForm extends StatelessWidget {
-  static GlobalKey _formKey;
+class NewPinForm extends StatefulWidget {
+  final GlobalKey formKey;
 
+  NewPinForm(this.formKey);
+
+  @override
+  State<NewPinForm> createState() => NewPinFormState();
+}
+
+class NewPinFormState extends State<NewPinForm> {
   final TextEditingController nameController = new TextEditingController();
   final TextEditingController bodyController = new TextEditingController();
-
-  NewPinForm(GlobalKey formKey) {
-    _formKey = formKey;
-  }
+  File image;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Form(
-        key: _formKey,
+        key: widget.formKey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            FormField(
+              validator: (_) => image == null ? "Pin must have an image" : null,
+              builder: (state) => Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 100.0,
+                    height: 100.0,
+                    padding: EdgeInsets.all(4.0),
+                    child: OutlineButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      onPressed: () {
+                        ImagePicker.pickImage(
+                          source: ImageSource.gallery,
+                        ).then((value) {
+                          setState(() {
+                            image = value;
+                          });
+                        });
+                      },
+                      child: image == null
+                          ? Icon(Icons.add_photo_alternate)
+                          : Image.file(image),
+                    ),
+                  ),
+                  state.hasError
+                      ? Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text(
+                            state.errorText,
+                            style:
+                                TextStyle(color: Theme.of(context).errorColor),
+                          ),
+                        )
+                      : Container(),
+                ],
+              ),
+            ),
             TextFormField(
               controller: nameController,
               decoration: InputDecoration(
@@ -33,15 +79,15 @@ class NewPinForm extends StatelessWidget {
             TextFormField(
               controller: bodyController,
               decoration: InputDecoration(
-                hintText: "Review of pin",
+                hintText: "Review",
                 contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
                 //border: OutlineInputBorder(),
               ),
               validator: (value) =>
                   value.isEmpty ? "Pin must have a review" : null,
-              maxLines: 5,
+              maxLines: 8,
             ),
-            SizedBox(height: 15.0),
+            SizedBox(height: 5.0),
           ],
         ),
       ),
