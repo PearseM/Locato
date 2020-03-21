@@ -27,8 +27,8 @@ class NewPinFormState extends State<NewPinForm> {
           children: <Widget>[
             FormField(
               validator: (_) => image == null ? "Pin must have an image" : null,
-              builder: (state) => Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              builder: (state) => Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     width: 100.0,
@@ -68,8 +68,12 @@ class NewPinFormState extends State<NewPinForm> {
                           padding: EdgeInsets.all(8.0),
                           child: Text(
                             state.errorText,
-                            style:
-                                TextStyle(color: Theme.of(context).errorColor),
+                            style: TextStyle(
+                                color: Theme.of(context).errorColor,
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .caption
+                                    .fontSize),
                           ),
                         )
                       : Container(),
