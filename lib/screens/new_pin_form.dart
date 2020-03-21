@@ -48,7 +48,10 @@ class NewPinFormState extends State<NewPinForm> {
                         });
                       },
                       child: image == null
-                          ? Icon(Icons.add_photo_alternate)
+                          ? Icon(
+                              Icons.add_photo_alternate,
+                              semanticLabel: "Add image",
+                            )
                           : Image.file(image),
                     ),
                   ),

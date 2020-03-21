@@ -21,11 +21,12 @@ class AccountPage extends StatelessWidget {
         title: Text("Account Settings"),
         actions: <Widget>[
           PopupMenuButton(
+            tooltip: "Help",
             icon: Icon(
-              Icons.info_outline,
+              Icons.help,
               color: Colors.white,
             ),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
               const PopupMenuItem(
                 child: Text("\nThis is the account info page.\n"
                     "\nYou can change username, view number of pins visited, number of reviews written and sign out/delete your account.\n"),
@@ -66,13 +67,12 @@ class AccountPage extends StatelessWidget {
                   children: <Widget>[
                     Column(children: [
                       StreamBuilder<List<String>>(
-                        stream: Database.visitedByUser(Account.currentAccount, context),
+                        stream: Database.visitedByUser(
+                            Account.currentAccount, context),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
-                            return Text(
-                              snapshot.data.length.toString(),
-                              textScaleFactor: 2.0
-                            );
+                            return Text(snapshot.data.length.toString(),
+                                textScaleFactor: 2.0);
                           } else {
                             return CircularProgressIndicator();
                           }

@@ -163,11 +163,13 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     formKey = GlobalKey<FormState>();
 
     fabAddPin = FloatingActionButton(
+      tooltip: "Add pin",
       onPressed: openDrawer,
       child: Icon(Icons.add_location),
     );
 
     fabConfirmPin = FloatingActionButton(
+      tooltip: "Confirm",
       onPressed: () {
         if (formKey.currentState.validate()) {
           NewPinFormState form =
@@ -437,19 +439,26 @@ class BottomBarNav extends StatelessWidget {
             onPressed: () {
               Scaffold.of(context).openDrawer();
             },
-            icon: Icon(Icons.menu),
+            icon: Icon(
+              Icons.menu,
+              semanticLabel: "Menu",
+            ),
           ),
           replacement: IconButton(
             onPressed: () {
               closeBarCallback();
             },
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(
+              Icons.arrow_back,
+              semanticLabel: "Cancel",
+            ),
           ),
         ),
         Spacer(),
         PopupMenuButton(
+          tooltip: "Help",
           icon: Icon(
-            Icons.info_outline,
+            Icons.help,
             color: Colors.black,
           ),
           itemBuilder: (BuildContext context) => <PopupMenuEntry>[
@@ -467,7 +476,10 @@ class BottomBarNav extends StatelessWidget {
                 context: context, delegate: MapSearchDelegate(pins));
             updateMapPosition(pin);
           },
-          icon: Icon(Icons.search),
+          icon: Icon(
+            Icons.search,
+            semanticLabel: "Search",
+          ),
         ),
       ],
     );

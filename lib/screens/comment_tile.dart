@@ -23,12 +23,15 @@ class YourReviewsListItem extends ListTile {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row (
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Image.network(
-            url, height: 65, width: 100,),
+            url,
+            height: 65,
+            width: 100,
+          ),
           Expanded(
             flex: 3,
             child: CustomListItem(
@@ -38,7 +41,10 @@ class YourReviewsListItem extends ListTile {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.keyboard_arrow_right),
+            icon: Icon(
+              Icons.keyboard_arrow_right,
+              semanticLabel: "Go to pin",
+            ),
             iconSize: 40.0,
             color: Color.fromRGBO(0, 0, 0, 0.3),
             onPressed: () {
@@ -57,12 +63,7 @@ class YourReviewsListItem extends ListTile {
 }
 
 class PinListItem extends StatefulWidget {
-  const PinListItem({
-    this.name,
-    this.date,
-    this.comment,
-    this.id
-  });
+  const PinListItem({this.name, this.date, this.comment, this.id});
 
   final String name;
   final DateTime date;
@@ -94,10 +95,10 @@ class _PinListItemState extends State<PinListItem> {
   }
 
   @override
-  Widget build (BuildContext context) {
-    return Padding (
+  Widget build(BuildContext context) {
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row (
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -111,7 +112,10 @@ class _PinListItemState extends State<PinListItem> {
           ),
           Spacer(),
           IconButton(
-              icon: Icon(isFlagged ? Icons.flag : Icons.outlined_flag),
+              icon: Icon(
+                isFlagged ? Icons.flag : Icons.outlined_flag,
+                semanticLabel: "Flagged",
+              ),
               onPressed: () {
                 if (isFlagged) {
                   Database.unFlag(widget.id);
@@ -123,7 +127,10 @@ class _PinListItemState extends State<PinListItem> {
                 });
               }),
           IconButton(
-              icon: Icon(isFavourite ? Icons.star : Icons.star_border),
+              icon: Icon(
+                isFavourite ? Icons.star : Icons.star_border,
+                semanticLabel: "Favourite",
+              ),
               onPressed: () {
                 if (isFavourite) {
                   Database.removeFavourite(widget.id);
@@ -252,7 +259,7 @@ class StarredReviewsListItem extends ListTile {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row (
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -265,9 +272,11 @@ class StarredReviewsListItem extends ListTile {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.close),
-            iconSize: 40.0,
-            color: Colors.red[600],
+            icon: Icon(
+              Icons.star,
+              semanticLabel: "Remove",
+            ),
+            iconSize: 28.0,
             onPressed: () {
               Database.removeFavourite(review.id);
             },
@@ -287,7 +296,7 @@ class FlaggedReviewsListItem extends ListTile {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row (
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -300,7 +309,10 @@ class FlaggedReviewsListItem extends ListTile {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.not_interested),
+            icon: Icon(
+              Icons.check,
+              semanticLabel: "Allow",
+            ),
             iconSize: 40.0,
             color: Colors.grey[600],
             onPressed: () {
@@ -308,7 +320,10 @@ class FlaggedReviewsListItem extends ListTile {
             },
           ),
           IconButton(
-            icon: Icon(Icons.delete_forever),
+            icon: Icon(
+              Icons.delete_forever,
+              semanticLabel: "Delete",
+            ),
             iconSize: 40.0,
             color: Colors.red,
             onPressed: () {

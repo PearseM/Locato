@@ -11,7 +11,10 @@ class FlaggedCommentsPage extends StatelessWidget {
           automaticallyImplyLeading: true,
           title: Text('Flagged Reviews'),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(
+              Icons.arrow_back,
+              semanticLabel: "Back",
+            ),
             onPressed: () => Navigator.pop(context, false),
           )),
       body: BodyLayout(),

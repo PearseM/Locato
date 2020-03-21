@@ -90,7 +90,10 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
             ),
             Builder(
               builder: (context) => IconButton(
-                icon: Icon(Icons.content_copy),
+                icon: Icon(
+                  Icons.content_copy,
+                  semanticLabel: "Copy URL",
+                ),
                 color: Colors.white,
                 onPressed: () {
                   Clipboard.setData(
@@ -106,6 +109,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
         body: ReviewList(widget.pin, scrollController),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: FloatingActionButton(
+          tooltip: "Write review",
           onPressed: () => showModalBottomSheet(
             isScrollControlled: true,
             context: context,

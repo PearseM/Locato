@@ -10,23 +10,29 @@ class UserCommentsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          automaticallyImplyLeading: true,
-          title: Text('Your Reviews'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context, false),
+        automaticallyImplyLeading: true,
+        title: Text('Your Reviews'),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            semanticLabel: "Back",
           ),
+          onPressed: () => Navigator.pop(context, false),
+        ),
         actions: <Widget>[
           PopupMenuButton(
+            tooltip: "Help",
             icon: Icon(
-              Icons.info_outline,
+              Icons.help,
               color: Colors.white,
-            ), itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+            ),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
               const PopupMenuItem(
-                child: Text("\nHere is a list of all the reviews you have made.\n"
+                child: Text(
+                    "\nHere is a list of all the reviews you have made.\n"
                     "\nYou can click on each one to go to the pin it was written about.\n"),
               ),
-          ],
+            ],
           )
         ],
       ),

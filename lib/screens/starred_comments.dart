@@ -12,7 +12,10 @@ class StarredCommentsPage extends StatelessWidget {
           automaticallyImplyLeading: true,
           title: Text('Favourite Reviews'),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(
+              Icons.arrow_back,
+              semanticLabel: "Back",
+            ),
             onPressed: () => Navigator.pop(context, false),
           )),
       body: BodyLayout(),
