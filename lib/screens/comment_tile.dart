@@ -110,7 +110,7 @@ class _PinListItemState extends State<PinListItem> {
               comment: widget.comment,
             ),
           ),
-          Spacer(),
+          //Spacer(),
           IconButton(
               icon: Icon(
                 isFlagged ? Icons.flag : Icons.outlined_flag,
