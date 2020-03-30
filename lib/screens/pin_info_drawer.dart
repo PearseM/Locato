@@ -10,17 +10,23 @@ import 'package:integrated_project/screens/comment_tile.dart';
 import 'package:photo_view/photo_view.dart';
 
 class PinInfoDrawer extends StatefulWidget {
-  final GlobalKey<FormState> _formKey;
   final Pin pin;
   final imgURL;
 
-  PinInfoDrawer(this._formKey, this.pin, this.imgURL);
+  PinInfoDrawer(this.pin, this.imgURL);
 
   @override
   _PinInfoDrawerState createState() => _PinInfoDrawerState();
 }
 
 class _PinInfoDrawerState extends State<PinInfoDrawer> {
+  final reviewFormKey = GlobalKey<NewReviewFormState>();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget imageView = Scaffold(
@@ -125,9 +131,22 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
         floatingActionButton: FloatingActionButton(
           tooltip: "Write review",
           onPressed: () => showModalBottomSheet(
-            isScrollControlled: true,
             context: context,
-            builder: (_) => NewReviewForm(widget._formKey, widget.pin),
+            builder: (_) => Scaffold(
+              appBar: AppBar(actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.save),
+                  onPressed: () {
+                    if (reviewFormKey.currentState.isValid()) {
+                      Review review = reviewFormKey.currentState.getReview();
+                      widget.pin.addReview(review);
+                      Navigator.pop(context);
+                    }
+                  },
+                )
+              ]),
+              body: NewReviewForm(reviewFormKey),
+            ),
           ),
           child: Icon(Icons.create),
         ),

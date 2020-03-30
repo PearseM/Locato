@@ -76,7 +76,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      builder: (_) => PinInfoDrawer(formKey, pin, pin.imageUrl),
+      builder: (_) => PinInfoDrawer(pin, pin.imageUrl),
     );
   }
 
