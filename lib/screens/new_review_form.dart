@@ -9,13 +9,17 @@ class NewReviewForm extends StatefulWidget {
 }
 
 class NewReviewFormState extends State<NewReviewForm> {
+  GlobalKey<FormFieldState> bodyKey;
   TextEditingController bodyController;
   TextFormField bodyField;
 
   @override
   void initState() {
+    bodyKey = GlobalKey<FormFieldState>();
     bodyController = TextEditingController();
+
     bodyField = TextFormField(
+      key: bodyKey,
       autofocus: true,
       controller: bodyController,
       decoration: InputDecoration(
@@ -33,7 +37,7 @@ class NewReviewFormState extends State<NewReviewForm> {
   @override
   Widget build(BuildContext context) => bodyField;
 
-  bool isValid() => bodyField.validator(bodyController.text) == null;
+  bool isValid() => bodyKey.currentState.validate();
 
   Review getReview() => Review(
         null,
