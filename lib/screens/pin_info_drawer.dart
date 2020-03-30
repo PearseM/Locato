@@ -89,20 +89,20 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
       ),
     );
 
-    Widget copyURLButton = IconButton(
-      icon: Icon(
-        Icons.content_copy,
-        semanticLabel: "Copy URL",
-      ),
-      color: Colors.white,
-      onPressed: () {
-        Clipboard.setData(
-            ClipboardData(text: widget.pin.id.hashCode.toString()));
-        Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text("URL copied to clipboard."),
-        ));
-      },
-    );
+    Widget copyURLButton(context) => IconButton(
+          icon: Icon(
+            Icons.content_copy,
+            semanticLabel: "Copy URL",
+          ),
+          color: Colors.white,
+          onPressed: () {
+            Clipboard.setData(
+                ClipboardData(text: widget.pin.id.hashCode.toString()));
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text("URL copied to clipboard."),
+            ));
+          },
+        );
 
     return DraggableScrollableSheet(
       expand: false,
@@ -117,7 +117,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
           actions: <Widget>[
             visitedButton,
             image,
-            copyURLButton,
+            Builder(builder: copyURLButton),
           ],
         ),
         body: ReviewList(widget.pin, scrollController),
