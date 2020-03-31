@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:integrated_project/resources/category.dart';
+import 'package:integrated_project/screens/category_picker.dart';
 
 class NewPinForm extends StatefulWidget {
   final GlobalKey formKey;
@@ -74,27 +75,6 @@ class NewPinFormState extends State<NewPinForm> {
       ),
     );
 
-    List<Category> categories = Category.all();
-
-    Widget categoryPicker = Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 8.0,
-      children: List<Widget>.generate(
-        categories.length,
-        (index) => ChoiceChip(
-          label: Text(categories[index].name),
-          labelStyle:
-              TextStyle(color: index == selected ? Colors.white : Colors.black),
-          selected: index == selected,
-          onSelected: (bool value) => setState(() {
-            selected = value ? index : selected;
-          }),
-          backgroundColor: categories[index].colour.withOpacity(0.15),
-          selectedColor: categories[index].colour,
-        ),
-      ),
-    );
-
     Widget pinNameField = TextFormField(
       controller: nameController,
       decoration: InputDecoration(
@@ -126,7 +106,7 @@ class NewPinFormState extends State<NewPinForm> {
           children: <Widget>[
             imagePicker,
             pinNameField,
-            categoryPicker,
+            CategoryPicker(),
             Divider(),
             SizedBox(height: 5.0),
             reviewBody,

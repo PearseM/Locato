@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:integrated_project/resources/option.dart';
 
-class Category {
-  String name;
-  Color colour;
-
-  Category(this.name, this.colour);
+class Category extends Option {
+  Category(String name, Color colour) : super(name, colour);
 
   static List<Category> all() => [
         Category("Landscape", Colors.green),
