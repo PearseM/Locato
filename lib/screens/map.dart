@@ -39,7 +39,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
   Set<Pin> pins = Set<Pin>();
 
-  GlobalKey<FormState> formKey;
+  GlobalKey<NewPinFormState> pinFormKey;
 
   // currently shown FAB and its location
   FloatingActionButton fabAddPin;
@@ -147,8 +147,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    Pin.formKey = formKey;
-
     drawerAnimator = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 250),
@@ -161,7 +159,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom)
         : widget.currentMapPosition;
 
-    formKey = GlobalKey<FormState>();
+    pinFormKey = GlobalKey<NewPinFormState>();
 
     fabAddPin = FloatingActionButton(
       tooltip: "Add pin",
@@ -172,14 +170,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       tooltip: "Confirm",
       onPressed: () {
-        if (formKey.currentState.validate()) {
-          NewPinFormState form =
-              formKey.currentContext.findAncestorStateOfType<NewPinFormState>();
-          String pinName = form.nameController.text;
-          File image = form.imagePickerKey.currentState.value;
-
-          createPin(
-              currentMapPosition, pinName, form.bodyController.text, image);
+        if (pinFormKey.currentState.validate()) {
+          pinFormKey.currentState.createPin().then((pin) {
+            pins.add(pin);
+          });
           closeDrawer();
         }
       },
@@ -218,7 +212,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       extendBody: true,
       // puts map beneath the notched app bar
       bottomNavigationBar: BottomBar(
-        formKey,
+        pinFormKey,
         closeDrawer,
         mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
         drawerHeight,
@@ -370,7 +364,7 @@ class MapBodyState extends State<MapBody> {
 }
 
 class BottomBar extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
+  final GlobalKey<NewPinFormState> pinFormKey;
   final VoidCallback closeBarCallback;
 
   final Function(double) barHeightCallback;
@@ -380,7 +374,7 @@ class BottomBar extends StatelessWidget {
   final Function(Pin) updateCameraPosition;
 
   BottomBar(
-    this.formKey,
+    this.pinFormKey,
     this.closeBarCallback,
     this.barHeightCallback,
     this.drawerHeight,
@@ -419,7 +413,7 @@ class BottomBar extends StatelessWidget {
               axisAlignment: -1.0,
               child: Padding(
                 padding: EdgeInsets.only(bottom: keyboardPadding),
-                child: NewPinForm(formKey, drawerHeight),
+                child: NewPinForm(drawerHeight, key: pinFormKey),
               ),
             ),
           ),

@@ -5,15 +5,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
-
-// TODO: decide on categories
-enum Category {
-  landscape,
-  mountain,
-  water,
-  night,
-}
 
 class Pin {
   String id;
@@ -28,8 +21,6 @@ class Pin {
   Set<Review> _reviews = Set<Review>();
 
   int _visitorCount = 0;
-
-  static GlobalKey<FormState> formKey;
 
   Pin(
     this.id,

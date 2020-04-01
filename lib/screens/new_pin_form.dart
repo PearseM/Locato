@@ -1,13 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/category.dart';
+import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/screens/map.dart';
 import 'package:integrated_project/widgets/radio_button_picker.dart';
 import 'package:integrated_project/widgets/image_picker_box.dart';
 
 class NewPinForm extends StatefulWidget {
-  final GlobalKey formKey;
   final double drawerHeight;
 
-  NewPinForm(this.formKey, this.drawerHeight);
+  NewPinForm(this.drawerHeight, {Key key}) : super(key: key);
 
   @override
   State<NewPinForm> createState() => NewPinFormState();
@@ -18,6 +24,26 @@ class NewPinFormState extends State<NewPinForm> {
   final TextEditingController bodyController = TextEditingController();
   final imagePickerKey = GlobalKey<FormFieldState>();
   final categoryPickerKey = GlobalKey<RadioButtonPickerState>();
+
+  final pinFormKey = GlobalKey<FormState>();
+
+  bool validate() => pinFormKey.currentState.validate();
+  
+  Future<Pin> createPin() async {
+    CameraPosition currentPosition =
+        context.findAncestorStateOfType<MapPageState>().currentMapPosition;
+    String pinName = nameController.text;
+    File image = imagePickerKey.currentState.value;
+
+    return Database.newPin(
+      currentPosition.target,
+      pinName,
+      bodyController.text,
+      Account.currentAccount,
+      image,
+      context,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +73,7 @@ class NewPinFormState extends State<NewPinForm> {
     );
 
     Widget pinForm = Form(
-      key: widget.formKey,
+      key: pinFormKey,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
