@@ -31,6 +31,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   // used to animate the change between new-pin states
   AnimationController drawerAnimator;
   bool showDrawer;
+  final double drawerHeight = 300;
 
   // how much the map is covered by the system status bar & BAB
   EdgeInsets mapOverlap;
@@ -150,7 +151,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
     drawerAnimator = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 150),
+      duration: Duration(milliseconds: 250),
     );
     showDrawer = false;
 
@@ -204,6 +205,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapMoveCallback: (value) => currentMapPosition = value,
         initialPosition: currentMapPosition,
         mapOverlap: mapOverlap,
+        drawerHeight: drawerHeight,
         pins: pins,
         pinAnimation: drawerAnimator,
         queryPins: queryPins,
@@ -219,6 +221,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         formKey,
         closeDrawer,
         mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
+        drawerHeight,
         drawerAnimator,
         showDrawer,
         updateMapPosition,
@@ -239,6 +242,7 @@ class MapBody extends StatefulWidget {
     this.mapMoveCallback,
     this.initialPosition,
     this.mapOverlap,
+    this.drawerHeight,
     this.pins,
     this.pinAnimation,
     this.queryPins,
@@ -248,6 +252,7 @@ class MapBody extends StatefulWidget {
   final Function() queryPins;
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
+  final double drawerHeight;
 
   final Set<Pin> pins;
 
@@ -322,24 +327,32 @@ class MapBodyState extends State<MapBody> {
 
     return Stack(
       children: <Widget>[
-        GoogleMap(
-          initialCameraPosition: widget.initialPosition,
-          padding: widget.mapOverlap,
-          markers: markers,
-          myLocationEnabled: locationEnabled,
-          myLocationButtonEnabled: locationEnabled,
-          onCameraMove: widget.mapMoveCallback,
-          onMapCreated: (_) => widget.queryPins(),
+        AnimatedBuilder(
+          animation: widget.pinAnimation,
+          builder: (context, _) => GoogleMap(
+            initialCameraPosition: widget.initialPosition,
+            padding: widget.mapOverlap +
+                EdgeInsets.only(
+                    bottom: widget.drawerHeight * widget.pinAnimation.value),
+            markers: markers,
+            myLocationEnabled: locationEnabled,
+            myLocationButtonEnabled: locationEnabled,
+            onCameraMove: widget.mapMoveCallback,
+            onMapCreated: (_) => widget.queryPins(),
+          ),
         ),
         Align(
-          child: ScaleTransition(
-            scale: widget.pinAnimation, // scale the pin with this animation
-            child: Transform.translate(
-              // corrects the offset caused by the mapOverlap
-              offset: Offset(
-                0.0,
-                (widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
-              ),
+          child: Transform.translate(
+            // corrects the offset caused by the mapOverlap
+            offset: Offset(
+              0.0,
+              (widget.mapOverlap.top -
+                      widget.drawerHeight -
+                      widget.mapOverlap.bottom) /
+                  2,
+            ),
+            child: ScaleTransition(
+              scale: widget.pinAnimation, // scale the pin with this animation
               child: FractionalTranslation(
                 translation: Offset(0.0, -0.5), // aligns pin point to centre
                 child: Icon(
@@ -361,6 +374,7 @@ class BottomBar extends StatelessWidget {
   final VoidCallback closeBarCallback;
 
   final Function(double) barHeightCallback;
+  final double drawerHeight;
   final Animation<double> openAnimation;
   final bool drawerOpen;
   final Function(Pin) updateCameraPosition;
@@ -369,6 +383,7 @@ class BottomBar extends StatelessWidget {
     this.formKey,
     this.closeBarCallback,
     this.barHeightCallback,
+    this.drawerHeight,
     this.openAnimation,
     this.drawerOpen,
     this.updateCameraPosition,
@@ -404,7 +419,7 @@ class BottomBar extends StatelessWidget {
               axisAlignment: -1.0,
               child: Padding(
                 padding: EdgeInsets.only(bottom: keyboardPadding),
-                child: NewPinForm(formKey),
+                child: NewPinForm(formKey, drawerHeight),
               ),
             ),
           ),

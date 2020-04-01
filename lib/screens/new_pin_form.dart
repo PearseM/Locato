@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/widgets/radio_button_picker.dart';
@@ -6,8 +5,9 @@ import 'package:integrated_project/widgets/image_picker_box.dart';
 
 class NewPinForm extends StatefulWidget {
   final GlobalKey formKey;
+  final double drawerHeight;
 
-  NewPinForm(this.formKey);
+  NewPinForm(this.formKey, this.drawerHeight);
 
   @override
   State<NewPinForm> createState() => NewPinFormState();
@@ -46,23 +46,28 @@ class NewPinFormState extends State<NewPinForm> {
       maxLines: 5,
     );
 
-    return Container(
-      child: Form(
-        key: widget.formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            imagePicker,
-            pinNameField,
-            RadioButtonPicker(options: Category.all()),
-            Divider(),
-            SizedBox(height: 5.0),
-            reviewBody,
-            SizedBox(height: 5.0),
-          ],
-        ),
+    Widget pinForm = Form(
+      key: widget.formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          imagePicker,
+          pinNameField,
+          RadioButtonPicker(options: Category.all()),
+        ],
+      ),
+    );
+
+    return SizedBox(
+      height: widget.drawerHeight,
+      child: DefaultTabController(
+        length: 2,
+        child: TabBarView(children: [
+          pinForm,
+          reviewBody,
+        ]),
       ),
     );
   }
