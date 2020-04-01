@@ -175,7 +175,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
           NewPinFormState form =
               formKey.currentContext.findAncestorStateOfType<NewPinFormState>();
           String pinName = form.nameController.text;
-          File image = form.image;
+          File image = form.imagePickerKey.currentState.value;
 
           createPin(
               currentMapPosition, pinName, form.bodyController.text, image);

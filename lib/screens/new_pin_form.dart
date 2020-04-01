@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/widgets/radio_button_picker.dart';
+import 'package:integrated_project/widgets/image_picker_box.dart';
 
 class NewPinForm extends StatefulWidget {
   final GlobalKey formKey;
@@ -14,65 +14,16 @@ class NewPinForm extends StatefulWidget {
 }
 
 class NewPinFormState extends State<NewPinForm> {
-  final TextEditingController nameController = new TextEditingController();
-  final TextEditingController bodyController = new TextEditingController();
-  File image;
-
-  int selected = 2;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController bodyController = TextEditingController();
+  final imagePickerKey = GlobalKey<FormFieldState>();
+  final categoryPickerKey = GlobalKey<RadioButtonPickerState>();
 
   @override
   Widget build(BuildContext context) {
-    Widget imagePicker = FormField(
-      validator: (_) => image == null ? "Pin must have an image" : null,
-      builder: (state) => Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 100.0,
-            height: 100.0,
-            padding: EdgeInsets.all(4.0),
-            child: OutlineButton(
-              clipBehavior: Clip.antiAlias,
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              onPressed: () {
-                ImagePicker.pickImage(
-                  source: ImageSource.gallery,
-                ).then((value) {
-                  setState(() {
-                    image = value;
-                  });
-                });
-              },
-              child: image == null
-                  ? Icon(
-                      Icons.add_photo_alternate,
-                      semanticLabel: "Add image",
-                    )
-                  : Image.file(
-                      image,
-                      width: 100.0,
-                      height: 100.0,
-                      semanticLabel: "Uploaded image",
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          ),
-          state.hasError
-              ? Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    state.errorText,
-                    style: TextStyle(
-                        color: Theme.of(context).errorColor,
-                        fontSize: Theme.of(context).textTheme.caption.fontSize),
-                  ),
-                )
-              : Container(),
-        ],
-      ),
+    Widget imagePicker = ImagePickerBox(
+      key: imagePickerKey,
+      validator: (image) => image == null ? "Pin must have an image" : null,
     );
 
     Widget pinNameField = TextFormField(
@@ -90,7 +41,6 @@ class NewPinFormState extends State<NewPinForm> {
       decoration: InputDecoration(
         hintText: "Review",
         contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-        //border: OutlineInputBorder(),
       ),
       validator: (value) => value.isEmpty ? "Pin must have a review" : null,
       maxLines: 5,
