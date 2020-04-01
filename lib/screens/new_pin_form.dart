@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:integrated_project/resources/category.dart';
-import 'package:integrated_project/screens/category_picker.dart';
+import 'package:integrated_project/widgets/radio_button_picker.dart';
 
 class NewPinForm extends StatefulWidget {
   final GlobalKey formKey;
@@ -106,7 +106,7 @@ class NewPinFormState extends State<NewPinForm> {
           children: <Widget>[
             imagePicker,
             pinNameField,
-            CategoryPicker(),
+            RadioButtonPicker(options: Category.all()),
             Divider(),
             SizedBox(height: 5.0),
             reviewBody,

@@ -1,8 +1,14 @@
 import 'package:flutter/widgets.dart';
 
 class Option {
-  String value;
+  String text;
   Color colour;
 
-  Option(this.value, this.colour);
+  Option(this.text, this.colour);
+
+  @override
+  bool operator ==(Object other) => other is Option && other.text == this.text;
+
+  @override
+  int get hashCode => this.text.hashCode;
 }
