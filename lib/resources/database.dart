@@ -98,7 +98,7 @@ class Database {
     });
   }
 
-  static Future<Pin> newPin(LatLng location, String name, String reviewContent,
+  static Future<Pin> newPin(LatLng location, String name, Review review,
       Account author, File image, BuildContext context) async {
     //Add the image to the database
     var timeKey = new DateTime.now();
@@ -116,11 +116,13 @@ class Database {
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
-        Review.newReviewMap(author, reviewContent, newPin.documentID);
+        Review.newReviewMap(review, newPin.documentID);
 
     //Add the review to the database
     DocumentReference initialReview =
         await Firestore.instance.collection("reviews").add(initialReviewMap);
+
+    review.id = initialReview.documentID;
 
     return Pin(
       newPin.documentID,
@@ -129,13 +131,7 @@ class Database {
       name,
       imageUrl,
       context,
-      review: Review(
-        initialReview.documentID,
-        author,
-        reviewContent,
-        initialReviewMap["dateAdded"].toDate(),
-        0,
-      ),
+      review: review,
     );
   }
 

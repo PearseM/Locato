@@ -137,7 +137,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                 IconButton(
                   icon: Icon(Icons.save),
                   onPressed: () {
-                    if (reviewFormKey.currentState.isValid()) {
+                    if (reviewFormKey.currentState.isValid) {
                       Review review = reviewFormKey.currentState.getReview();
                       widget.pin.addReview(review);
                       Navigator.pop(context);
@@ -145,7 +145,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                   },
                 )
               ]),
-              body: NewReviewForm(reviewFormKey),
+              body: NewReviewForm(key: reviewFormKey),
             ),
           ),
           child: Icon(Icons.create),

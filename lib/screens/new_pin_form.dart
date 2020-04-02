@@ -6,7 +6,9 @@ import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/map.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/widgets/radio_button_picker.dart';
 import 'package:integrated_project/widgets/image_picker_box.dart';
 
@@ -20,81 +22,119 @@ class NewPinForm extends StatefulWidget {
 }
 
 class NewPinFormState extends State<NewPinForm> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController bodyController = TextEditingController();
-  final imagePickerKey = GlobalKey<FormFieldState>();
-  final categoryPickerKey = GlobalKey<RadioButtonPickerState>();
+  GlobalKey<_PinFormState> pinFormKey;
+  GlobalKey<NewReviewFormState> reviewFormKey;
 
-  final pinFormKey = GlobalKey<FormState>();
+  PinForm pinForm;
+  NewReviewForm reviewForm;
 
-  bool validate() => pinFormKey.currentState.validate();
-  
+  bool validate() =>
+      pinFormKey.currentState.isValid & reviewFormKey.currentState.isValid;
+
   Future<Pin> createPin() async {
-    CameraPosition currentPosition =
-        context.findAncestorStateOfType<MapPageState>().currentMapPosition;
-    String pinName = nameController.text;
-    File image = imagePickerKey.currentState.value;
+    Review review = reviewFormKey.currentState.getReview();
+    return pinFormKey.currentState.createPin(review);
+  }
 
-    return Database.newPin(
-      currentPosition.target,
-      pinName,
-      bodyController.text,
-      Account.currentAccount,
-      image,
-      context,
-    );
+  @override
+  void initState() {
+    pinFormKey = GlobalKey<_PinFormState>();
+    reviewFormKey = GlobalKey<NewReviewFormState>();
+
+    pinForm = PinForm(key: pinFormKey);
+    reviewForm = NewReviewForm(key: reviewFormKey);
+
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget imagePicker = ImagePickerBox(
-      key: imagePickerKey,
-      validator: (image) => image == null ? "Pin must have an image" : null,
-    );
-
-    Widget pinNameField = TextFormField(
-      controller: nameController,
-      decoration: InputDecoration(
-        hintText: "Name of pin",
-        border: UnderlineInputBorder(),
-        contentPadding: EdgeInsets.all(10.0),
-      ),
-      validator: (value) => value.isEmpty ? 'Pin must have a name' : null,
-    );
-
-    Widget reviewBody = TextFormField(
-      controller: bodyController,
-      decoration: InputDecoration(
-        hintText: "Review",
-        contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-      ),
-      validator: (value) => value.isEmpty ? "Pin must have a review" : null,
-      maxLines: 5,
-    );
-
-    Widget pinForm = Form(
-      key: pinFormKey,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          imagePicker,
-          pinNameField,
-          RadioButtonPicker(options: Category.all()),
-        ],
-      ),
-    );
-
     return SizedBox(
       height: widget.drawerHeight,
       child: DefaultTabController(
         length: 2,
         child: TabBarView(children: [
           pinForm,
-          reviewBody,
+          reviewForm,
         ]),
       ),
+    );
+  }
+}
+
+class PinForm extends StatefulWidget {
+  PinForm({Key key}) : super(key: key);
+
+  @override
+  _PinFormState createState() => _PinFormState();
+}
+
+class _PinFormState extends State<PinForm>
+    with AutomaticKeepAliveClientMixin<PinForm> {
+  GlobalKey<FormState> formKey;
+  GlobalKey<FormFieldState> imagePickerKey;
+  GlobalKey<RadioButtonPickerState> categoryPickerKey;
+
+  TextEditingController nameController;
+
+  @override
+  void initState() {
+    formKey = GlobalKey<FormState>();
+    imagePickerKey = GlobalKey<FormFieldState>();
+    categoryPickerKey = GlobalKey<RadioButtonPickerState>();
+
+    nameController = TextEditingController();
+
+    super.initState();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    return Form(
+      key: formKey,
+      child: Column(children: <Widget>[
+        ImagePickerBox(
+          key: imagePickerKey,
+          validator: (image) => image == null ? "Pin must have an image" : null,
+        ),
+        RadioButtonPicker(
+          key: categoryPickerKey,
+          options: Category.all(),
+        ),
+        TextFormField(
+          controller: nameController,
+          validator: (text) => text.isEmpty ? "Pin must have a name" : null,
+          decoration: InputDecoration(
+            hintText: "Name of pin",
+            contentPadding: EdgeInsets.all(8.0),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  bool get isValid => formKey.currentState.validate();
+
+  Future<Pin> createPin(Review review) async {
+    File image = imagePickerKey.currentState.value;
+    String name = nameController.text;
+    Category category = categoryPickerKey.currentState.selectedOption;
+
+    CameraPosition position =
+        context.findAncestorStateOfType<MapPageState>().currentMapPosition;
+
+    return Database.newPin(
+      position.target,
+      name,
+      review,
+      Account.currentAccount,
+      image,
+      context,
     );
   }
 }

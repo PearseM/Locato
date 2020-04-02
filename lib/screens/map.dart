@@ -81,19 +81,6 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  /// Creates a new pin and displays it on the map.
-  ///
-  /// Requires the location of the pin, a name and the first review to be
-  /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, String reviewContent,
-      File image) async {
-    Pin pin = await Database.newPin(
-        location.target, name, reviewContent, _account, image, context);
-    setState(() {
-      pins.add(pin);
-    });
-  }
-
   void barHeightChange(double height) {
     setState(() {
       mapOverlap =

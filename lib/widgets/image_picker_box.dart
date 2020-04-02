@@ -6,9 +6,10 @@ import 'package:image_picker/image_picker.dart';
 class ImagePickerBox extends FormField<File> {
   ImagePickerBox({Key key, validator})
       : super(
-            key: key,
-            builder: (state) => ImagePickerBoxState(state),
-            validator: validator);
+          key: key,
+          builder: (state) => ImagePickerBoxState(state),
+          validator: validator,
+        );
 }
 
 class ImagePickerBoxState extends StatelessWidget {

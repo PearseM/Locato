@@ -44,19 +44,15 @@ class Review {
     review["dateAdded"] = Timestamp.fromDate(timestamp);
     review["content"] = _body;
     review["flagCount"] = _flagCount;
-    review["pinID"] = pin.id;
+    review["pinID"] = pin?.id;
     return review;
   }
 
   static Map<String, dynamic> newReviewMap(
-      Account author, String content, String pinID) {
-    Map<String, dynamic> review = Map();
-    review["author"] = author.id;
-    review["dateAdded"] = Timestamp.now();
-    review["content"] = content;
-    review["flagCount"] = 0;
-    review["pinID"] = pinID;
-    return review;
+      Review review, String pinID) {
+    Map<String, dynamic> map = review.asMap();
+    map["pinID"] = pinID;
+    return map;
   }
 
   static Review fromMap(String id, Map<String, dynamic> data) {
