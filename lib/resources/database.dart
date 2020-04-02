@@ -9,16 +9,23 @@ import 'package:integrated_project/resources/review.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:integrated_project/resources/visited.dart';
 
+class PinChange {
+  DocumentChangeType type;
+  Pin pin;
+
+  PinChange(this.type, this.pin);
+}
+
 class Database {
-  static Stream<List<Pin>> getPins(BuildContext context) {
+  static Stream<List<PinChange>> getPins(BuildContext context) {
     return Firestore.instance
         .collection("pins")
         .snapshots()
         .asyncMap((snapshot) async {
-      Completer<List<Pin>> pinsListCompleter = Completer<List<Pin>>();
-      List<Pin> pins = [];
-      for (DocumentSnapshot document in snapshot.documents) {
-        Review firstReview = await getFirstReview(document.documentID);
+      Completer<List<PinChange>> pinsListCompleter = Completer<List<PinChange>>();
+      List<PinChange> pinChanges = [];
+      for (DocumentChange documentChange in snapshot.documentChanges) {
+        DocumentSnapshot document = documentChange.document;
         Pin pin = Pin(
           document.documentID,
           LatLng(
@@ -29,11 +36,13 @@ class Database {
           document["name"],
           document["imageUrl"],
           context,
-          review: firstReview,
+          review: (documentChange.type == DocumentChangeType.added)
+              ? await getFirstReview(document.documentID)
+              : null,
         );
-        pins.add(pin);
+        pinChanges.add(PinChange(documentChange.type, pin));
       }
-      pinsListCompleter.complete(pins);
+      pinsListCompleter.complete(pinChanges);
       return pinsListCompleter.future;
     });
   }

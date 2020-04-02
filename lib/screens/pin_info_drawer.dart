@@ -126,7 +126,24 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
             Builder(builder: copyURLButton),
           ],
         ),
-        body: ReviewList(widget.pin, scrollController),
+        body: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Text("Category:", style: Theme.of(context).textTheme.subtitle,),
+                  ),
+                  Chip(label: Text("Lake")), // TODO Get category from pin
+                ],
+              ),
+            ),
+            Divider(color: Colors.black),
+            ReviewList(widget.pin, scrollController),
+          ],
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: FloatingActionButton(
           tooltip: "Write review",
@@ -174,44 +191,17 @@ class ReviewList extends StatelessWidget {
           return Center(child: Text("No reviews"));
         } else {
           return ListView.separated(
+            shrinkWrap: true,
             controller: scrollController,
             itemCount: snapshot.data.length,
             separatorBuilder: (_, i) => Divider(color: Colors.black),
             itemBuilder: (_, i) {
               Review review = snapshot.data.elementAt(i);
-              return FutureBuilder(
-                future: review.author.userName,
-                builder: (context, nameSnapshot) {
-                  return (nameSnapshot.hasData)
-                      ? PinListItem(
-                          name: nameSnapshot.data ?? "Unknown",
-                          date: review.timestamp,
-                          comment: review.body,
-                          id: review.id,
-                        )
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        );
-                },
-              );
+              return PinListItem(review);
             },
           );
         }
       },
-    );
-  }
-}
-
-class ReviewItem extends StatelessWidget {
-  final Review review;
-
-  ReviewItem(this.review);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(8.0),
-      child: Text(review.body),
     );
   }
 }

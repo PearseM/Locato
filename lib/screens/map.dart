@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
@@ -88,44 +89,17 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  /*
-  /// Fetches the pins from the database and adds them to the map.
   void queryPins() {
-    Stream<QuerySnapshot> query = Database.getPins();
-    query.listen((data) {
-      for (DocumentChange documentChange in data.documentChanges) {
-        Map<String, dynamic> document = documentChange.document.data;
-        Review review =
-            Database.getFirstReview(documentChange.document.documentID);
-        Pin pin = Pin(
-          documentChange.document.documentID,
-          LatLng(
-            document["location"].latitude,
-            document["location"].longitude,
-          ),
-          Account(document["author"]),
-          document["name"],
-          review,
-        );
-        setState(() {
-          pins.add(pin);
-        });
-        Database.getReviewsForPin(documentChange.document.documentID)
-            .listen((data) {
-          data.documentChanges.removeAt(0);
-          data.documentChanges.forEach((change) {
-            pin.addReview(Review.fromMap(
-                change.document.documentID, change.document.data));
-          });
-        });
-      }
-    });
-  }*/
-
-  void queryPins() {
-    Database.getPins(context).listen((pinsList) {
+    Database.getPins(context).listen((pinChangesList) {
       setState(() {
-        pins.addAll(pinsList);
+        for (PinChange pinChange in pinChangesList) {
+          if (pinChange.type == DocumentChangeType.added) {
+            pins.add(pinChange.pin);
+          }
+          else if (pinChange.type == DocumentChangeType.removed) {
+            pins.remove(pinChange.pin);
+          }
+        }
       });
     });
   }
