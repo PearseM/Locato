@@ -21,15 +21,31 @@ class NewPinForm extends StatefulWidget {
   State<NewPinForm> createState() => NewPinFormState();
 }
 
-class NewPinFormState extends State<NewPinForm> {
+class NewPinFormState extends State<NewPinForm>
+    with SingleTickerProviderStateMixin {
+  TabController tabController;
+
   GlobalKey<_PinFormState> pinFormKey;
   GlobalKey<NewReviewFormState> reviewFormKey;
 
   PinForm pinForm;
   NewReviewForm reviewForm;
 
-  bool validate() =>
-      pinFormKey.currentState.isValid & reviewFormKey.currentState.isValid;
+  bool validate() {
+    if (!pinFormKey.currentState.isValid) {
+      tabController.animateTo(0);
+      return false;
+    }
+
+    if (reviewFormKey.currentState == null ||
+        !reviewFormKey.currentState.isValid) {
+      tabController.animateTo(1);
+      tabController.addListener(() => reviewFormKey.currentState.isValid);
+      return false;
+    }
+
+    return true;
+  }
 
   Future<Pin> createPin() async {
     Review review = reviewFormKey.currentState.getReview();
@@ -38,6 +54,8 @@ class NewPinFormState extends State<NewPinForm> {
 
   @override
   void initState() {
+    tabController = TabController(length: 2, vsync: this);
+
     pinFormKey = GlobalKey<_PinFormState>();
     reviewFormKey = GlobalKey<NewReviewFormState>();
 
@@ -51,13 +69,10 @@ class NewPinFormState extends State<NewPinForm> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: widget.drawerHeight,
-      child: DefaultTabController(
-        length: 2,
-        child: TabBarView(children: [
-          pinForm,
-          reviewForm,
-        ]),
-      ),
+      child: TabBarView(controller: tabController, children: [
+        pinForm,
+        reviewForm,
+      ]),
     );
   }
 }
