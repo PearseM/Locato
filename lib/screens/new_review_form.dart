@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/resources/tag.dart';
+import 'package:integrated_project/widgets/check_box_picker.dart';
 
 class NewReviewForm extends StatefulWidget {
   NewReviewForm({Key key}) : super(key: key);
@@ -31,6 +33,7 @@ class NewReviewFormState extends State<NewReviewForm>
     return Form(
       key: formKey,
       child: Column(children: <Widget>[
+        CheckBoxPicker(options: Tag.all()),
         TextFormField(
           controller: bodyController,
           decoration: InputDecoration(
