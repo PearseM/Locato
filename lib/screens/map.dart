@@ -31,7 +31,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   // used to animate the change between new-pin states
   AnimationController drawerAnimator;
   bool showDrawer;
-  final double drawerHeight = 300;
+  final double drawerHeight = 325;
 
   // how much the map is covered by the system status bar & BAB
   EdgeInsets mapOverlap;

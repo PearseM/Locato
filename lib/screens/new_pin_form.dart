@@ -88,7 +88,7 @@ class _PinFormState extends State<PinForm>
     with AutomaticKeepAliveClientMixin<PinForm> {
   GlobalKey<FormState> formKey;
   GlobalKey<FormFieldState> imagePickerKey;
-  GlobalKey<RadioButtonPickerState> categoryPickerKey;
+  GlobalKey<FormFieldState> categoryPickerKey;
 
   TextEditingController nameController;
 
@@ -96,7 +96,7 @@ class _PinFormState extends State<PinForm>
   void initState() {
     formKey = GlobalKey<FormState>();
     imagePickerKey = GlobalKey<FormFieldState>();
-    categoryPickerKey = GlobalKey<RadioButtonPickerState>();
+    categoryPickerKey = GlobalKey<FormFieldState>();
 
     nameController = TextEditingController();
 
@@ -119,6 +119,8 @@ class _PinFormState extends State<PinForm>
         ),
         RadioButtonPicker(
           key: categoryPickerKey,
+          validator: (option) =>
+              option == null ? "Pin must have a category" : null,
           options: Category.all(),
         ),
         TextFormField(
@@ -138,7 +140,7 @@ class _PinFormState extends State<PinForm>
   Future<Pin> createPin(Review review) async {
     File image = imagePickerKey.currentState.value;
     String name = nameController.text;
-    Category category = categoryPickerKey.currentState.selectedOption;
+    Category category = categoryPickerKey.currentState.value;
 
     CameraPosition position =
         context.findAncestorStateOfType<MapPageState>().currentMapPosition;

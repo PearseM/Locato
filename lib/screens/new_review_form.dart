@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/option.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/resources/tag.dart';
 import 'package:integrated_project/widgets/check_box_picker.dart';
@@ -33,7 +34,12 @@ class NewReviewFormState extends State<NewReviewForm>
     return Form(
       key: formKey,
       child: Column(children: <Widget>[
-        CheckBoxPicker(options: Tag.all()),
+        CheckBoxPicker(
+          options: Tag.all(),
+          validator: (value) =>
+              // TODO: does a review NEED tags?
+              value.isEmpty ? "Review must have tags" : null,
+        ),
         TextFormField(
           controller: bodyController,
           decoration: InputDecoration(

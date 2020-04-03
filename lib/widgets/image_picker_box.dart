@@ -58,8 +58,9 @@ class ImagePickerBoxState extends StatelessWidget {
                 child: Text(
                   state.errorText,
                   style: TextStyle(
-                      color: Theme.of(context).errorColor,
-                      fontSize: Theme.of(context).textTheme.caption.fontSize),
+                    color: Theme.of(context).errorColor,
+                    fontSize: Theme.of(context).textTheme.caption.fontSize,
+                  ),
                 ),
               )
             : Container(),

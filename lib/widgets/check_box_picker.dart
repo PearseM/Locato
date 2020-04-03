@@ -1,44 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/option.dart';
 
-class CheckBoxPicker extends StatefulWidget {
+class CheckBoxPicker extends FormField<Set<Option>> {
   final List<Option> options;
 
-  CheckBoxPicker({Key key, this.options}) : super(key: key);
+  CheckBoxPicker({Key key, this.options, validator})
+      : super(
+          key: key,
+          validator: validator,
+          initialValue: Set<Option>(),
+          builder: (state) => Column(children: <Widget>[
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8.0,
+              children: List.generate(options.length, (i) {
+                Option option = options[i];
+                bool selected = state.value.contains(option);
 
-  @override
-  State<StatefulWidget> createState() => CheckBoxPickerState();
-}
-
-class CheckBoxPickerState extends State<CheckBoxPicker> {
-  Set<Option> selectedOptions = {};
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 8.0,
-      children: List.generate(widget.options.length, (i) {
-        Option option = widget.options[i];
-        bool selected = selectedOptions.contains(option);
-
-        return ChoiceChip(
-          label: Text(option.text),
-          labelStyle: TextStyle(
-            color: selected ? Colors.white : Colors.black,
-          ),
-          onSelected: (selected) => setState(() {
-            if (selected) {
-              selectedOptions.add(option);
-            } else {
-              selectedOptions.remove(option);
-            }
-          }),
-          selected: selected,
-          selectedColor: option.colour,
-          backgroundColor: option.colour.withOpacity(0.2),
+                return ChoiceChip(
+                  label: Text(option.text),
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : Colors.black,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) {
+                      state.value.add(option);
+                    } else {
+                      state.value.remove(option);
+                    }
+                    state.didChange(state.value);
+                  },
+                  selected: selected,
+                  selectedColor: option.colour,
+                  backgroundColor: option.colour.withOpacity(0.2),
+                );
+              }),
+            ),
+            state.hasError
+                ? Text(
+                    state.errorText,
+                    style: TextStyle(
+                      color: Theme.of(state.context).errorColor,
+                      fontSize:
+                          Theme.of(state.context).textTheme.caption.fontSize,
+                    ),
+                  )
+                : Container(),
+          ]),
         );
-      }),
-    );
-  }
 }
