@@ -151,10 +151,26 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
               child: CircularProgressIndicator(),
             );
 
+            Category category = widget.pin.category;
+            Widget categoryChip = Chip(
+              label: Text(category.text),
+              labelStyle: TextStyle(color: Colors.white),
+              backgroundColor: category.colour,
+            );
+
             return CustomScrollView(
               physics: BouncingScrollPhysics(),
               slivers: <Widget>[
                 bar,
+                SliverToBoxAdapter(
+                  child: Row(children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text("Category:"),
+                    ),
+                    categoryChip,
+                  ]),
+                ),
                 snapshot.hasData
                     ? ReviewList(snapshot.data)
                     : SliverFillRemaining(child: progressIndicator),
