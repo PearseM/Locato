@@ -32,7 +32,7 @@ class Pin {
     BuildContext context, {
     Review review,
   }) {
-    marker = _createMarker(context, this);
+    marker = _createMarker(context);
     if (review != null) {
       _reviews.add(review);
       review.pin = this;
@@ -57,15 +57,21 @@ class Pin {
     // TODO: update DB
   }
 
-  static Marker _createMarker(BuildContext context, Pin pin) {
-    return Marker(
-      markerId: MarkerId(pin.id),
-      position: pin.location,
-      onTap: () => showModalBottomSheet(
-        context: context,
-        builder: (_) => PinInfoDrawer(pin, pin.imageUrl),
-        isScrollControlled: true,
+  void showPinInfo(context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PinInfoDrawer(this, imageUrl),
+        fullscreenDialog: true,
       ),
+    );
+  }
+
+  Marker _createMarker(BuildContext context) {
+    return Marker(
+      markerId: MarkerId(id),
+      position: location,
+      onTap: () => showPinInfo(context),
     );
   }
 
