@@ -178,10 +178,13 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                           childCount: snapshot.data.length,
                         ),
                       )
-                    : SliverFillRemaining(child: progressIndicator),
+                    : SliverFillRemaining(
+                        child: progressIndicator,
+                        hasScrollBody: false,
+                      ),
                 SliverFillRemaining(hasScrollBody: false),
                 SliverToBoxAdapter(
-                  child: Padding(padding: EdgeInsets.all(98.0)),
+                  child: Padding(padding: EdgeInsets.all(1.0)),
                 )
               ],
             );
