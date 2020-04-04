@@ -36,9 +36,6 @@ class NewReviewFormState extends State<NewReviewForm>
       child: Column(children: <Widget>[
         CheckBoxPicker(
           options: Tag.all(),
-          validator: (value) =>
-              // TODO: does a review NEED tags?
-              value.isEmpty ? "Review must have tags" : null,
         ),
         TextFormField(
           controller: bodyController,
