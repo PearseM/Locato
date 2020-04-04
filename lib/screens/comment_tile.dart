@@ -93,23 +93,41 @@ class _PinListItemState extends State<PinListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 16.0),
       child: InkWell(
         onTap: () => showDialog(
           context: context,
           builder: (context) => ReviewInfoDialog(widget.review),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Expanded(
-              flex: 3,
-              child: PinCustomListItem(widget.review),
+            Text(
+              widget.review.body,
+              textScaleFactor: 1.1,
             ),
-            Spacer(),
-            IconButton(
+            Row(children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  FutureBuilder(
+                    future: widget.review.author.userName,
+                    builder: (_, snapshot) => Text(
+                      (snapshot.hasData) ? snapshot.data : "Unknown",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    formatDate(widget.review.timestamp),
+                    style: TextStyle(color: Colors.black.withOpacity(0.4)),
+                  ),
+                ],
+              ),
+              Spacer(),
+              IconButton(
+                padding: EdgeInsets.zero,
                 icon: Icon(
                   isFlagged ? Icons.flag : Icons.outlined_flag,
                   semanticLabel: "Flagged",
@@ -123,8 +141,10 @@ class _PinListItemState extends State<PinListItem> {
                   setState(() {
                     isFlagged = !isFlagged;
                   });
-                }),
-            IconButton(
+                },
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
                 icon: Icon(
                   isFavourite ? Icons.star : Icons.star_border,
                   semanticLabel: "Favourite",
@@ -138,54 +158,25 @@ class _PinListItemState extends State<PinListItem> {
                   setState(() {
                     isFavourite = !isFavourite;
                   });
-                })
+                },
+              ),
+            ])
           ],
         ),
       ),
     );
   }
-}
 
-class PinCustomListItem extends ListTile {
-  const PinCustomListItem(
-    this.review,
-  );
-
-  final Review review;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              review.body,
-              style:
-                  DefaultTextStyle.of(context).style.apply(fontSizeFactor: 1.1),
-            ),
-            FutureBuilder(
-              future: review.author.userName,
-              builder: (context, snapshot) =>
-                  (snapshot.hasData) ? Text(snapshot.data) : Text("Unknown"),
-            ),
-            Text(
-              review.timestamp.day.toString().padLeft(2, '0') +
-                  "/" +
-                  review.timestamp.month.toString().padLeft(2, '0') +
-                  "/" +
-                  review.timestamp.year.toString() +
-                  " " +
-                  review.timestamp.hour.toString().padLeft(2, '0') +
-                  ":" +
-                  review.timestamp.minute.toString().padLeft(2, '0'),
-              style: TextStyle(color: Colors.black.withOpacity(0.4)),
-            ),
-          ]),
-    );
-  }
+  String formatDate(DateTime timestamp) =>
+      timestamp.day.toString().padLeft(2, '0') +
+      "/" +
+      timestamp.month.toString().padLeft(2, '0') +
+      "/" +
+      timestamp.year.toString() +
+      " " +
+      timestamp.hour.toString().padLeft(2, '0') +
+      ":" +
+      timestamp.minute.toString().padLeft(2, '0');
 }
 
 class CustomListItem extends ListTile {
@@ -398,7 +389,8 @@ class ReviewInfoDialog extends StatelessWidget {
                           Row(
                             children: <Widget>[
                               Chip(
-                                label: Text("Slow-shutter"), //TODO Get tag from review
+                                label: Text(
+                                    "Slow-shutter"), //TODO Get tag from review
                               ),
                             ],
                           ),

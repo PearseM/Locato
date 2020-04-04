@@ -165,7 +165,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                 SliverToBoxAdapter(
                   child: Row(children: <Widget>[
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text("Category:"),
                     ),
                     categoryChip,
