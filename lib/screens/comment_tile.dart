@@ -63,12 +63,9 @@ class YourReviewsListItem extends ListTile {
 }
 
 class PinListItem extends StatefulWidget {
-  const PinListItem({this.name, this.date, this.comment, this.id});
+  const PinListItem(this.review);
 
-  final String name;
-  final DateTime date;
-  final String comment;
-  final String id;
+  final Review review;
 
   @override
   _PinListItemState createState() => _PinListItemState();
@@ -80,12 +77,12 @@ class _PinListItemState extends State<PinListItem> {
 
   @override
   void initState() {
-    Database.isFlagged(widget.id).then((value) {
+    Database.isFlagged(widget.review.id).then((value) {
       setState(() {
         isFlagged = value;
       });
     });
-    Database.isFavourite(widget.id).then((value) {
+    Database.isFavourite(widget.review.id).then((value) {
       setState(() {
         isFavourite = value;
       });
@@ -98,66 +95,63 @@ class _PinListItemState extends State<PinListItem> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Expanded(
-            flex: 3,
-            child: PinCustomListItem(
-              name: widget.name,
-              date: widget.date,
-              comment: widget.comment,
+      child: InkWell(
+        onTap: () => showDialog(
+          context: context,
+          builder: (context) => ReviewInfoDialog(widget.review),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Expanded(
+              flex: 3,
+              child: PinCustomListItem(widget.review),
             ),
-          ),
-          Spacer(),
-          IconButton(
-              icon: Icon(
-                isFlagged ? Icons.flag : Icons.outlined_flag,
-                semanticLabel: "Flagged",
-              ),
-              onPressed: () {
-                if (isFlagged) {
-                  Database.unFlag(widget.id);
-                } else {
-                  Database.flag(widget.id);
-                }
-                setState(() {
-                  isFlagged = !isFlagged;
-                });
-              }),
-          IconButton(
-              icon: Icon(
-                isFavourite ? Icons.star : Icons.star_border,
-                semanticLabel: "Favourite",
-              ),
-              onPressed: () {
-                if (isFavourite) {
-                  Database.removeFavourite(widget.id);
-                } else {
-                  Database.addFavourite(widget.id);
-                }
-                setState(() {
-                  isFavourite = !isFavourite;
-                });
-              })
-        ],
+            Spacer(),
+            IconButton(
+                icon: Icon(
+                  isFlagged ? Icons.flag : Icons.outlined_flag,
+                  semanticLabel: "Flagged",
+                ),
+                onPressed: () {
+                  if (isFlagged) {
+                    Database.unFlag(widget.review.id);
+                  } else {
+                    Database.flag(widget.review.id);
+                  }
+                  setState(() {
+                    isFlagged = !isFlagged;
+                  });
+                }),
+            IconButton(
+                icon: Icon(
+                  isFavourite ? Icons.star : Icons.star_border,
+                  semanticLabel: "Favourite",
+                ),
+                onPressed: () {
+                  if (isFavourite) {
+                    Database.removeFavourite(widget.review.id);
+                  } else {
+                    Database.addFavourite(widget.review.id);
+                  }
+                  setState(() {
+                    isFavourite = !isFavourite;
+                  });
+                })
+          ],
+        ),
       ),
     );
   }
 }
 
 class PinCustomListItem extends ListTile {
-  const PinCustomListItem({
-    this.name,
-    this.date,
-    this.comment,
-  });
+  const PinCustomListItem(
+    this.review,
+  );
 
-  final bool enabled = true;
-  final String name;
-  final DateTime date;
-  final String comment;
+  final Review review;
 
   @override
   Widget build(BuildContext context) {
@@ -168,33 +162,28 @@ class PinCustomListItem extends ListTile {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              comment,
+              review.body,
               style:
                   DefaultTextStyle.of(context).style.apply(fontSizeFactor: 1.1),
             ),
-            Text(name),
+            FutureBuilder(
+              future: review.author.userName,
+              builder: (context, snapshot) =>
+                  (snapshot.hasData) ? Text(snapshot.data) : Text("Unknown"),
+            ),
             Text(
-              date.day.toString().padLeft(2, '0') +
+              review.timestamp.day.toString().padLeft(2, '0') +
                   "/" +
-                  date.month.toString().padLeft(2, '0') +
+                  review.timestamp.month.toString().padLeft(2, '0') +
                   "/" +
-                  date.year.toString() +
+                  review.timestamp.year.toString() +
                   " " +
-                  date.hour.toString().padLeft(2, '0') +
+                  review.timestamp.hour.toString().padLeft(2, '0') +
                   ":" +
-                  date.minute.toString().padLeft(2, '0'),
+                  review.timestamp.minute.toString().padLeft(2, '0'),
               style: TextStyle(color: Colors.black.withOpacity(0.4)),
             ),
           ]),
-//      onTap: () {
-//        Navigator.push(context,
-//            MaterialPageRoute(builder: (context) => MapPage()));
-//      },
-//      onLongPress: (){
-//        // do something else
-//      },
-      //selected: true,
-      //trailing: Icon(Icons.keyboard_arrow_right),
     );
   }
 }
@@ -238,21 +227,13 @@ class CustomListItem extends ListTile {
               style: TextStyle(color: Colors.black.withOpacity(0.4)),
             ),
           ]),
-//      onTap: () {
-//        Navigator.push(context,
-//            MaterialPageRoute(builder: (context) => MapPage()));
-//      },
-//      onLongPress: (){
-//        // do something else
-//      },
-      //selected: true,
-      //trailing: Icon(Icons.keyboard_arrow_right),
     );
   }
 }
 
 class StarredReviewsListItem extends ListTile {
   const StarredReviewsListItem(this.review);
+
   final Review review;
 
   @override
@@ -329,6 +310,183 @@ class FlaggedReviewsListItem extends ListTile {
             onPressed: () {
               Database.deleteReview(review);
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ReviewInfoDialog extends StatelessWidget {
+  ReviewInfoDialog(this._review);
+
+  final Review _review;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text("Review info",
+                            style: Theme.of(context).textTheme.title),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(_review.body),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          _review.timestamp.day.toString().padLeft(2, '0') +
+                              "/" +
+                              _review.timestamp.month
+                                  .toString()
+                                  .padLeft(2, '0') +
+                              "/" +
+                              _review.timestamp.year.toString() +
+                              " " +
+                              _review.timestamp.hour
+                                  .toString()
+                                  .padLeft(2, '0') +
+                              ":" +
+                              _review.timestamp.minute
+                                  .toString()
+                                  .padLeft(2, '0'),
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            "Tags:",
+                            style: Theme.of(context).textTheme.subhead,
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Chip(
+                                label: Text("Slow-shutter"), //TODO Get tag from review
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        "Camera settings:",
+                        style: Theme.of(context).textTheme.subhead,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: GridView.count(
+                                childAspectRatio: 4,
+                                crossAxisCount: 2,
+                                shrinkWrap: true,
+                                children: <Widget>[
+                                  //TODO Get settings from review
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Tripod"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: Icon(Icons.check),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("ISO"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: Text("900"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Shutter speed"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: Text("1/200"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text("Aperature"),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: Text("f2.6"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16)),
+                color: Colors.blue,
+              ),
+              padding: EdgeInsets.all(16),
+              child: Text(
+                "Close",
+                style: Theme.of(context).primaryTextTheme.button,
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
         ],
       ),

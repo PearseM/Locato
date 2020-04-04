@@ -172,7 +172,12 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
                   ]),
                 ),
                 snapshot.hasData
-                    ? ReviewList(snapshot.data)
+                    ? SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, i) => PinListItem(snapshot.data[i]),
+                          childCount: snapshot.data.length,
+                        ),
+                      )
                     : SliverFillRemaining(child: progressIndicator),
                 SliverFillRemaining(hasScrollBody: false),
                 SliverToBoxAdapter(
@@ -181,29 +186,6 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
               ],
             );
           }),
-    );
-  }
-}
-
-class ReviewList extends StatelessWidget {
-  final List<Review> reviews;
-  ReviewList(this.reviews);
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, i) => FutureBuilder(
-          future: reviews[i].author.userName,
-          builder: (context, snapshot) => PinListItem(
-            name: snapshot.data ?? "Unknown",
-            date: reviews[i].timestamp,
-            comment: reviews[i].body,
-            id: reviews[i].id,
-          ),
-        ),
-        childCount: reviews.length,
-      ),
     );
   }
 }
