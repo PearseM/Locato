@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -28,6 +29,7 @@ class Database {
           Account(document["author"]),
           document["name"],
           document["imageUrl"],
+          Category.find(document["category"]),
           context,
           review: firstReview,
         );
@@ -98,8 +100,15 @@ class Database {
     });
   }
 
-  static Future<Pin> newPin(LatLng location, String name, Review review,
-      Account author, File image, BuildContext context) async {
+  static Future<Pin> newPin(
+    LatLng location,
+    String name,
+    Review review,
+    Account author,
+    File image,
+    Category category,
+    BuildContext context,
+  ) async {
     //Add the image to the database
     var timeKey = new DateTime.now();
     final StorageReference postImageRef =
@@ -110,9 +119,14 @@ class Database {
     print(imageUrl);
 
     //Add the pin to the database
-    DocumentReference newPin = await Firestore.instance
-        .collection("pins")
-        .add(Pin.newPinMap(name, location, author, imageUrl));
+    DocumentReference newPin =
+        await Firestore.instance.collection("pins").add(Pin.newPinMap(
+              name,
+              location,
+              author,
+              imageUrl,
+              category,
+            ));
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
@@ -130,6 +144,7 @@ class Database {
       author,
       name,
       imageUrl,
+      category,
       context,
       review: review,
     );

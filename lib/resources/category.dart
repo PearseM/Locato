@@ -12,4 +12,8 @@ class Category extends Option {
         Category("Woodland", Colors.brown),
         Category("Place of Worship", Colors.orangeAccent),
       ];
+
+  static Category find(String text) => Category.all().firstWhere(
+        (test) => test.text == text,
+      );
 }

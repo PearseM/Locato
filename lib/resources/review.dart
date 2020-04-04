@@ -48,15 +48,19 @@ class Review {
     return review;
   }
 
-  static Map<String, dynamic> newReviewMap(
-      Review review, String pinID) {
+  static Map<String, dynamic> newReviewMap(Review review, String pinID) {
     Map<String, dynamic> map = review.asMap();
     map["pinID"] = pinID;
     return map;
   }
 
   static Review fromMap(String id, Map<String, dynamic> data) {
-    return Review(id, Account(data["author"]), data["content"],
-        data["dateAdded"].toDate(), data["flagCount"]);
+    return Review(
+      id,
+      Account(data["author"]),
+      data["content"],
+      data["dateAdded"].toDate(),
+      data["flagCount"],
+    );
   }
 }

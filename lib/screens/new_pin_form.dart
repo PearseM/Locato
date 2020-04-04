@@ -151,6 +151,7 @@ class _PinFormState extends State<PinForm>
       review,
       Account.currentAccount,
       image,
+      category,
       context,
     );
   }

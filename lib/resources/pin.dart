@@ -17,7 +17,7 @@ class Pin {
   final String imageUrl;
   Marker marker;
 
-  Set<Category> _categories = Set<Category>();
+  Category _category;
   Set<Review> _reviews = Set<Review>();
 
   int _visitorCount = 0;
@@ -28,6 +28,7 @@ class Pin {
     this.author,
     this.name,
     this.imageUrl,
+    this._category,
     BuildContext context, {
     Review review,
   }) {
@@ -38,12 +39,7 @@ class Pin {
     }
   }
 
-  Set<Category> get categories => _categories;
-
-  void addCategory(Category value) {
-    _categories.add(value);
-    // TODO: update DB
-  }
+  Category get category => _category;
 
   Set<Review> get reviews => _reviews;
 
@@ -80,17 +76,24 @@ class Pin {
     pin["visitorCount"] = _visitorCount;
     pin["author"] = author.id;
     pin["imageUrl"] = imageUrl;
+    pin["category"] = category.text;
     return pin;
   }
 
   static Map<String, dynamic> newPinMap(
-      String name, LatLng location, Account author, String imageUrl) {
+    String name,
+    LatLng location,
+    Account author,
+    String imageUrl,
+    Category category,
+  ) {
     Map<String, dynamic> pin = Map();
     pin["name"] = name;
     pin["location"] = GeoPoint(location.latitude, location.longitude);
     pin["visitorCount"] = 0;
     pin["author"] = author.id;
     pin["imageUrl"] = imageUrl;
+    pin["category"] = category.text;
     return pin;
   }
 
@@ -102,6 +105,7 @@ class Pin {
       Account(pinMap["author"]),
       pinMap["name"],
       pinMap["imageUrl"],
+      Category.find(pinMap["category"]),
       context,
       review: review,
     );
