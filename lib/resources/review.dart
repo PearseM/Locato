@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/tag.dart';
 
 class Review {
   String id;
@@ -13,8 +14,21 @@ class Review {
   String _body;
 
   int _flagCount;
+  Set<Tag> tags = Set();
 
-  Review(this.id, this.author, this._body, this.timestamp, this._flagCount);
+  bool tripod;
+  String iso;
+  String shutterSpeed;
+  String aperture;
+
+  Review(this.id, this.author, this._body, this.timestamp, this._flagCount,
+      {tags, tripod, iso, shutterSpeed, aperture}) {
+    if (tags != null) this.tags = tags;
+    if (tripod != null) this.tripod = tripod;
+    if (iso != null) this.iso = iso;
+    if (shutterSpeed != null) this.shutterSpeed = shutterSpeed;
+    if (aperture != null) this.aperture = aperture;
+  }
 
   String get body => _body;
 
@@ -45,6 +59,10 @@ class Review {
     review["content"] = _body;
     review["flagCount"] = _flagCount;
     review["pinID"] = pin?.id;
+    review["tripod"] = tripod;
+    review["iso"] = iso;
+    review["shutterSpeed"] = shutterSpeed;
+    review["aperture"] = aperture;
     return review;
   }
 
@@ -61,6 +79,10 @@ class Review {
       data["content"],
       data["dateAdded"].toDate(),
       data["flagCount"],
+      tripod: data["tripod"],
+      iso: data["iso"],
+      shutterSpeed: data["shutterSpeed"],
+      aperture: data["aperture"],
     );
   }
 }

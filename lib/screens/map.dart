@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,6 +42,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   Set<Pin> pins = Set<Pin>();
 
   GlobalKey<NewPinFormState> pinFormKey;
+  StreamSubscription<List<PinChange>> pinsStream;
 
   // currently shown FAB and its location
   FloatingActionButton fabAddPin;
@@ -90,7 +92,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   }
 
   void queryPins() {
-    Database.getPins(context).listen((pinChangesList) {
+    pinsStream = Database.getPins(context).listen((pinChangesList) {
       setState(() {
         for (PinChange pinChange in pinChangesList) {
           if (pinChange.type == DocumentChangeType.added) {
@@ -151,6 +153,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         _account = account;
       });
     });
+
+    queryPins();
   }
 
   @override
@@ -163,7 +167,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         drawerHeight: drawerHeight,
         pins: pins,
         pinAnimation: drawerAnimator,
-        queryPins: queryPins,
+        pinsStream: pinsStream,
       ),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -200,11 +204,10 @@ class MapBody extends StatefulWidget {
     this.drawerHeight,
     this.pins,
     this.pinAnimation,
-    this.queryPins,
+    this.pinsStream,
   }) : super(key: key);
 
   final Function(CameraPosition) mapMoveCallback;
-  final Function() queryPins;
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
   final double drawerHeight;
@@ -212,6 +215,7 @@ class MapBody extends StatefulWidget {
   final Set<Pin> pins;
 
   final Animation<double> pinAnimation;
+  final StreamSubscription<List<PinChange>> pinsStream;
 
   @override
   State<MapBody> createState() => MapBodyState();
@@ -274,6 +278,11 @@ class MapBodyState extends State<MapBody> {
   }
 
   @override
+  void dispose() {
+    widget.pinsStream.cancel();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Set<Marker> markers = Set<Marker>();
     for (Pin pin in widget.pins) {
@@ -293,7 +302,6 @@ class MapBodyState extends State<MapBody> {
             myLocationEnabled: locationEnabled,
             myLocationButtonEnabled: locationEnabled,
             onCameraMove: widget.mapMoveCallback,
-            onMapCreated: (_) => widget.queryPins(),
           ),
         ),
         Align(
