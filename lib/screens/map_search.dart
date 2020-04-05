@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:edit_distance/edit_distance.dart';
-
+import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/pin.dart';
 
 class MapSearchDelegate extends SearchDelegate<Pin> {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/database.dart';
-import 'package:integrated_project/screens/comment_tile.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/comment_tile.dart';
 
 class FlaggedCommentsPage extends StatelessWidget {
   @override

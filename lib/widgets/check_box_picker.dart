@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/option.dart';
-import 'package:integrated_project/resources/tag.dart';
 
 class CheckBoxPicker extends FormField<Set<Option>> {
   final List<Option> options;

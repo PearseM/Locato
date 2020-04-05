@@ -1,20 +1,19 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
+import 'package:integrated_project/screens/new_pin_form.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
 import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:integrated_project/screens/new_pin_form.dart';
-import 'package:integrated_project/resources/pin.dart';
 
 class MapPage extends StatefulWidget {
   static const kDefaultZoom = 14.4746;

@@ -9,8 +9,8 @@ import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/screens/map.dart';
 import 'package:integrated_project/screens/new_review_form.dart';
-import 'package:integrated_project/widgets/radio_button_picker.dart';
 import 'package:integrated_project/widgets/image_picker_box.dart';
+import 'package:integrated_project/widgets/radio_button_picker.dart';
 
 class NewPinForm extends StatefulWidget {
   final double drawerHeight;
