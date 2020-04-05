@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:integrated_project/main.dart';
+import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:integrated_project/sign_in.dart';
-import 'package:integrated_project/resources/account.dart';
 
 //Minimum and maximum character count for the username.
 const int userNameMin = 1;

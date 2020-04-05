@@ -1,18 +1,19 @@
-import 'dart:io';
+import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
 import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/screens/map_drawer.dart';
 import 'package:integrated_project/screens/map_search.dart';
+import 'package:integrated_project/screens/new_pin_form.dart';
 import 'package:integrated_project/screens/pin_info_drawer.dart';
 import 'package:integrated_project/sign_in.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:integrated_project/screens/new_pin_form.dart';
-import 'package:integrated_project/resources/pin.dart';
 
 class MapPage extends StatefulWidget {
   static const kDefaultZoom = 14.4746;
@@ -31,6 +32,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   // used to animate the change between new-pin states
   AnimationController drawerAnimator;
   bool showDrawer;
+  final double drawerHeight = 325;
 
   // how much the map is covered by the system status bar & BAB
   EdgeInsets mapOverlap;
@@ -38,7 +40,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
 
   Set<Pin> pins = Set<Pin>();
 
-  GlobalKey<FormState> formKey;
+  GlobalKey<NewPinFormState> pinFormKey;
+  StreamSubscription<List<PinChange>> pinsStream;
 
   // currently shown FAB and its location
   FloatingActionButton fabAddPin;
@@ -76,21 +79,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
-      builder: (_) => PinInfoDrawer(formKey, pin, pin.imageUrl),
+      builder: (_) => PinInfoDrawer(pin, pin.imageUrl),
     );
-  }
-
-  /// Creates a new pin and displays it on the map.
-  ///
-  /// Requires the location of the pin, a name and the first review to be
-  /// displayed. The pin will also be added to the database
-  void createPin(CameraPosition location, String name, String reviewContent,
-      File image) async {
-    Pin pin = await Database.newPin(
-        location.target, name, reviewContent, _account, image, context);
-    setState(() {
-      pins.add(pin);
-    });
   }
 
   void barHeightChange(double height) {
@@ -100,44 +90,17 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     });
   }
 
-  /*
-  /// Fetches the pins from the database and adds them to the map.
   void queryPins() {
-    Stream<QuerySnapshot> query = Database.getPins();
-    query.listen((data) {
-      for (DocumentChange documentChange in data.documentChanges) {
-        Map<String, dynamic> document = documentChange.document.data;
-        Review review =
-            Database.getFirstReview(documentChange.document.documentID);
-        Pin pin = Pin(
-          documentChange.document.documentID,
-          LatLng(
-            document["location"].latitude,
-            document["location"].longitude,
-          ),
-          Account(document["author"]),
-          document["name"],
-          review,
-        );
-        setState(() {
-          pins.add(pin);
-        });
-        Database.getReviewsForPin(documentChange.document.documentID)
-            .listen((data) {
-          data.documentChanges.removeAt(0);
-          data.documentChanges.forEach((change) {
-            pin.addReview(Review.fromMap(
-                change.document.documentID, change.document.data));
-          });
-        });
-      }
-    });
-  }*/
-
-  void queryPins() {
-    Database.getPins(context).listen((pinsList) {
+    pinsStream = Database.getPins(context).listen((pinChangesList) {
       setState(() {
-        pins.addAll(pinsList);
+        for (PinChange pinChange in pinChangesList) {
+          if (pinChange.type == DocumentChangeType.added) {
+            pins.add(pinChange.pin);
+          }
+          else if (pinChange.type == DocumentChangeType.removed) {
+            pins.remove(pinChange.pin);
+          }
+        }
       });
     });
   }
@@ -146,11 +109,9 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    Pin.formKey = formKey;
-
     drawerAnimator = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 150),
+      duration: Duration(milliseconds: 250),
     );
     showDrawer = false;
 
@@ -160,7 +121,7 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
             target: LatLng(51.3782261, -2.3285874), zoom: MapPage.kDefaultZoom)
         : widget.currentMapPosition;
 
-    formKey = GlobalKey<FormState>();
+    pinFormKey = GlobalKey<NewPinFormState>();
 
     fabAddPin = FloatingActionButton(
       tooltip: "Add pin",
@@ -171,14 +132,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
     fabConfirmPin = FloatingActionButton(
       tooltip: "Confirm",
       onPressed: () {
-        if (formKey.currentState.validate()) {
-          NewPinFormState form =
-              formKey.currentContext.findAncestorStateOfType<NewPinFormState>();
-          String pinName = form.nameController.text;
-          File image = form.image;
-
-          createPin(
-              currentMapPosition, pinName, form.bodyController.text, image);
+        if (pinFormKey.currentState.validate()) {
+          pinFormKey.currentState.createPin().then((pin) {
+            pins.add(pin);
+          });
           closeDrawer();
         }
       },
@@ -195,6 +152,8 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         _account = account;
       });
     });
+
+    queryPins();
   }
 
   @override
@@ -204,9 +163,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
         mapMoveCallback: (value) => currentMapPosition = value,
         initialPosition: currentMapPosition,
         mapOverlap: mapOverlap,
+        drawerHeight: drawerHeight,
         pins: pins,
         pinAnimation: drawerAnimator,
-        queryPins: queryPins,
+        pinsStream: pinsStream,
       ),
       drawer: MapDrawer(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -216,9 +176,10 @@ class MapPageState extends State<MapPage> with SingleTickerProviderStateMixin {
       extendBody: true,
       // puts map beneath the notched app bar
       bottomNavigationBar: BottomBar(
-        formKey,
+        pinFormKey,
         closeDrawer,
         mapOverlap == EdgeInsets.zero ? barHeightChange : (_) {},
+        drawerHeight,
         drawerAnimator,
         showDrawer,
         updateMapPosition,
@@ -239,19 +200,21 @@ class MapBody extends StatefulWidget {
     this.mapMoveCallback,
     this.initialPosition,
     this.mapOverlap,
+    this.drawerHeight,
     this.pins,
     this.pinAnimation,
-    this.queryPins,
+    this.pinsStream,
   }) : super(key: key);
 
   final Function(CameraPosition) mapMoveCallback;
-  final Function() queryPins;
   final CameraPosition initialPosition;
   final EdgeInsets mapOverlap;
+  final double drawerHeight;
 
   final Set<Pin> pins;
 
   final Animation<double> pinAnimation;
+  final StreamSubscription<List<PinChange>> pinsStream;
 
   @override
   State<MapBody> createState() => MapBodyState();
@@ -314,6 +277,11 @@ class MapBodyState extends State<MapBody> {
   }
 
   @override
+  void dispose() {
+    widget.pinsStream.cancel();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Set<Marker> markers = Set<Marker>();
     for (Pin pin in widget.pins) {
@@ -322,24 +290,31 @@ class MapBodyState extends State<MapBody> {
 
     return Stack(
       children: <Widget>[
-        GoogleMap(
-          initialCameraPosition: widget.initialPosition,
-          padding: widget.mapOverlap,
-          markers: markers,
-          myLocationEnabled: locationEnabled,
-          myLocationButtonEnabled: locationEnabled,
-          onCameraMove: widget.mapMoveCallback,
-          onMapCreated: (_) => widget.queryPins(),
+        AnimatedBuilder(
+          animation: widget.pinAnimation,
+          builder: (context, _) => GoogleMap(
+            initialCameraPosition: widget.initialPosition,
+            padding: widget.mapOverlap +
+                EdgeInsets.only(
+                    bottom: widget.drawerHeight * widget.pinAnimation.value),
+            markers: markers,
+            myLocationEnabled: locationEnabled,
+            myLocationButtonEnabled: locationEnabled,
+            onCameraMove: widget.mapMoveCallback,
+          ),
         ),
         Align(
-          child: ScaleTransition(
-            scale: widget.pinAnimation, // scale the pin with this animation
-            child: Transform.translate(
-              // corrects the offset caused by the mapOverlap
-              offset: Offset(
-                0.0,
-                (widget.mapOverlap.top - widget.mapOverlap.bottom) / 2,
-              ),
+          child: Transform.translate(
+            // corrects the offset caused by the mapOverlap
+            offset: Offset(
+              0.0,
+              (widget.mapOverlap.top -
+                      widget.drawerHeight -
+                      widget.mapOverlap.bottom) /
+                  2,
+            ),
+            child: ScaleTransition(
+              scale: widget.pinAnimation, // scale the pin with this animation
               child: FractionalTranslation(
                 translation: Offset(0.0, -0.5), // aligns pin point to centre
                 child: Icon(
@@ -357,18 +332,20 @@ class MapBodyState extends State<MapBody> {
 }
 
 class BottomBar extends StatelessWidget {
-  final GlobalKey<FormState> formKey;
+  final GlobalKey<NewPinFormState> pinFormKey;
   final VoidCallback closeBarCallback;
 
   final Function(double) barHeightCallback;
+  final double drawerHeight;
   final Animation<double> openAnimation;
   final bool drawerOpen;
   final Function(Pin) updateCameraPosition;
 
   BottomBar(
-    this.formKey,
+    this.pinFormKey,
     this.closeBarCallback,
     this.barHeightCallback,
+    this.drawerHeight,
     this.openAnimation,
     this.drawerOpen,
     this.updateCameraPosition,
@@ -404,7 +381,7 @@ class BottomBar extends StatelessWidget {
               axisAlignment: -1.0,
               child: Padding(
                 padding: EdgeInsets.only(bottom: keyboardPadding),
-                child: NewPinForm(formKey),
+                child: NewPinForm(drawerHeight, key: pinFormKey),
               ),
             ),
           ),

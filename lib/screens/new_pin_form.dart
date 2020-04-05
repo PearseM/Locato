@@ -1,111 +1,158 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/category.dart';
+import 'package:integrated_project/resources/database.dart';
+import 'package:integrated_project/resources/pin.dart';
+import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/screens/map.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
+import 'package:integrated_project/widgets/image_picker_box.dart';
+import 'package:integrated_project/widgets/radio_button_picker.dart';
 
 class NewPinForm extends StatefulWidget {
-  final GlobalKey formKey;
+  final double drawerHeight;
 
-  NewPinForm(this.formKey);
+  NewPinForm(this.drawerHeight, {Key key}) : super(key: key);
 
   @override
   State<NewPinForm> createState() => NewPinFormState();
 }
 
-class NewPinFormState extends State<NewPinForm> {
-  final TextEditingController nameController = new TextEditingController();
-  final TextEditingController bodyController = new TextEditingController();
-  File image;
+class NewPinFormState extends State<NewPinForm>
+    with SingleTickerProviderStateMixin {
+  TabController tabController;
+
+  GlobalKey<_PinFormState> pinFormKey;
+  GlobalKey<NewReviewFormState> reviewFormKey;
+
+  PinForm pinForm;
+  NewReviewForm reviewForm;
+
+  bool validate() {
+    if (!pinFormKey.currentState.isValid) {
+      tabController.animateTo(0);
+      return false;
+    }
+
+    if (reviewFormKey.currentState == null ||
+        !reviewFormKey.currentState.isValid) {
+      tabController.animateTo(1);
+      tabController.addListener(() => reviewFormKey.currentState.isValid);
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<Pin> createPin() async {
+    Review review = reviewFormKey.currentState.getReview();
+    return pinFormKey.currentState.createPin(review);
+  }
+
+  @override
+  void initState() {
+    tabController = TabController(length: 2, vsync: this);
+
+    pinFormKey = GlobalKey<_PinFormState>();
+    reviewFormKey = GlobalKey<NewReviewFormState>();
+
+    pinForm = PinForm(key: pinFormKey);
+    reviewForm = NewReviewForm(key: reviewFormKey);
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Form(
-        key: widget.formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            FormField(
-              validator: (_) => image == null ? "Pin must have an image" : null,
-              builder: (state) => Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 100.0,
-                    height: 100.0,
-                    padding: EdgeInsets.all(4.0),
-                    child: OutlineButton(
-                      clipBehavior: Clip.antiAlias,
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      onPressed: () {
-                        ImagePicker.pickImage(
-                          source: ImageSource.gallery,
-                        ).then((value) {
-                          setState(() {
-                            image = value;
-                          });
-                        });
-                      },
-                      child: image == null
-                          ? Icon(
-                              Icons.add_photo_alternate,
-                              semanticLabel: "Add image",
-                            )
-                          : Image.file(
-                              image,
-                              width: 100.0,
-                              height: 100.0,
-                              semanticLabel: "Uploaded image",
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                  state.hasError
-                      ? Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            state.errorText,
-                            style: TextStyle(
-                                color: Theme.of(context).errorColor,
-                                fontSize: Theme.of(context)
-                                    .textTheme
-                                    .caption
-                                    .fontSize),
-                          ),
-                        )
-                      : Container(),
-                ],
-              ),
-            ),
-            TextFormField(
-              controller: nameController,
-              decoration: InputDecoration(
-                hintText: "Name of pin",
-                border: UnderlineInputBorder(),
-                contentPadding: EdgeInsets.all(10.0),
-              ),
-              validator: (value) =>
-                  value.isEmpty ? 'Pin must have a name' : null,
-            ),
-            SizedBox(height: 5.0),
-            TextFormField(
-              controller: bodyController,
-              decoration: InputDecoration(
-                hintText: "Review",
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.0),
-                //border: OutlineInputBorder(),
-              ),
-              validator: (value) =>
-                  value.isEmpty ? "Pin must have a review" : null,
-              maxLines: 8,
-            ),
-            SizedBox(height: 5.0),
-          ],
+    return SizedBox(
+      height: widget.drawerHeight,
+      child: TabBarView(controller: tabController, children: [
+        pinForm,
+        reviewForm,
+      ]),
+    );
+  }
+}
+
+class PinForm extends StatefulWidget {
+  PinForm({Key key}) : super(key: key);
+
+  @override
+  _PinFormState createState() => _PinFormState();
+}
+
+class _PinFormState extends State<PinForm>
+    with AutomaticKeepAliveClientMixin<PinForm> {
+  GlobalKey<FormState> formKey;
+  GlobalKey<FormFieldState> imagePickerKey;
+  GlobalKey<FormFieldState> categoryPickerKey;
+
+  TextEditingController nameController;
+
+  @override
+  void initState() {
+    formKey = GlobalKey<FormState>();
+    imagePickerKey = GlobalKey<FormFieldState>();
+    categoryPickerKey = GlobalKey<FormFieldState>();
+
+    nameController = TextEditingController();
+
+    super.initState();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    return Form(
+      key: formKey,
+      child: Column(children: <Widget>[
+        ImagePickerBox(
+          key: imagePickerKey,
+          validator: (image) => image == null ? "Pin must have an image" : null,
         ),
-      ),
+        RadioButtonPicker(
+          key: categoryPickerKey,
+          validator: (option) =>
+              option == null ? "Pin must have a category" : null,
+          options: Category.all(),
+        ),
+        TextFormField(
+          controller: nameController,
+          validator: (text) => text.isEmpty ? "Pin must have a name" : null,
+          decoration: InputDecoration(
+            hintText: "Name of pin",
+            contentPadding: EdgeInsets.all(8.0),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  bool get isValid => formKey.currentState.validate();
+
+  Future<Pin> createPin(Review review) async {
+    File image = imagePickerKey.currentState.value;
+    String name = nameController.text;
+    Category category = categoryPickerKey.currentState.value;
+
+    CameraPosition position =
+        context.findAncestorStateOfType<MapPageState>().currentMapPosition;
+
+    return Database.newPin(
+      position.target,
+      name,
+      review,
+      Account.currentAccount,
+      image,
+      category,
+      context,
     );
   }
 }

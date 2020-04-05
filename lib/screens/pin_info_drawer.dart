@@ -1,44 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
-import 'package:integrated_project/screens/new_review_form.dart';
 import 'package:integrated_project/screens/comment_tile.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:integrated_project/screens/new_review_form.dart';
 
 class PinInfoDrawer extends StatefulWidget {
-  final GlobalKey<FormState> _formKey;
   final Pin pin;
   final imgURL;
 
-  PinInfoDrawer(this._formKey, this.pin, this.imgURL);
+  PinInfoDrawer(this.pin, this.imgURL);
 
   @override
   _PinInfoDrawerState createState() => _PinInfoDrawerState();
 }
 
 class _PinInfoDrawerState extends State<PinInfoDrawer> {
+  GlobalKey<NewReviewFormState> reviewFormKey;
+
+  @override
+  void initState() {
+    reviewFormKey = GlobalKey<NewReviewFormState>();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget imageView = Scaffold(
-      appBar: AppBar(
-        title: Text(widget.pin.name),
-      ),
-      body: PhotoView(
-        imageProvider: NetworkImage(
-          widget.imgURL,
-        ),
-        minScale: PhotoViewComputedScale.contained,
-        maxScale: PhotoViewComputedScale.covered * 2,
-        backgroundDecoration: BoxDecoration(
-          color: Theme.of(context).canvasColor,
-        ),
-      ),
-    );
-
     Widget visitedButton = StreamBuilder<List<String>>(
       stream: Database.visitedByUser(Account.currentAccount, context),
       builder: (context, snapshot) {
@@ -68,131 +58,132 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
       },
     );
 
-    Widget image = GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => imageView),
-      ),
-      child: Image.network(
-        widget.imgURL,
-        loadingBuilder: (context, child, progress) {
-          if (progress == null) {
-            return child;
-          }
-          return Center(
-            child: CircularProgressIndicator(backgroundColor: Colors.white),
-          );
-        },
-        width: 50.0,
-        height: MediaQuery.of(context).size.height,
-        fit: BoxFit.cover,
-      ),
-    );
-
-    Widget copyURLButton(context) => IconButton(
-          icon: Icon(
-            Icons.content_copy,
-            semanticLabel: "Copy URL",
+    Widget copyURLButton(context) => Builder(
+          builder: (context) => IconButton(
+            icon: Icon(
+              Icons.content_copy,
+              semanticLabel: "Copy URL",
+            ),
+            color: Colors.white,
+            onPressed: () {
+              Clipboard.setData(
+                  ClipboardData(text: widget.pin.id.hashCode.toString()));
+              Scaffold.of(context).showSnackBar(SnackBar(
+                content: Text("URL copied to clipboard."),
+              ));
+            },
           ),
-          color: Colors.white,
-          onPressed: () {
-            Clipboard.setData(
-                ClipboardData(text: widget.pin.id.hashCode.toString()));
-            Scaffold.of(context).showSnackBar(SnackBar(
-              content: Text("URL copied to clipboard."),
-            ));
-          },
         );
 
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      minChildSize: 0.5,
-      maxChildSize: 0.75,
-      builder: (_, scrollController) => Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text(widget.pin.name),
-          shape: Theme.of(context).bottomSheetTheme.shape,
-          actions: <Widget>[
-            visitedButton,
-            image,
-            Builder(builder: copyURLButton),
+    Widget bar = SliverAppBar(
+      pinned: true,
+      floating: true,
+      stretch: true,
+      onStretchTrigger: () async {
+        Navigator.maybePop(context);
+      },
+      expandedHeight: 250,
+      actions: <Widget>[
+        visitedButton,
+        copyURLButton(context),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(widget.pin.name, overflow: TextOverflow.ellipsis,),
+        background: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            Image.network(
+              widget.imgURL,
+              fit: BoxFit.cover,
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment(0.0, -0.5),
+                  end: Alignment(0.0, -0.2),
+                  colors: <Color>[
+                    Theme.of(context).primaryColor.withOpacity(0.4),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
-        body: ReviewList(widget.pin, scrollController),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: FloatingActionButton(
-          tooltip: "Write review",
-          onPressed: () => showModalBottomSheet(
-            isScrollControlled: true,
-            context: context,
-            builder: (_) => NewReviewForm(widget._formKey, widget.pin),
-          ),
-          child: Icon(Icons.create),
         ),
       ),
     );
-  }
-}
 
-class ReviewList extends StatelessWidget {
-  final Pin pin;
-  final ScrollController scrollController;
-
-  ReviewList(this.pin, this.scrollController);
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<Review>>(
-      stream: Database.getReviewsForPin(pin.id),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.data.isEmpty) {
-          return Center(child: Text("No reviews"));
-        } else {
-          return ListView.separated(
-            controller: scrollController,
-            itemCount: snapshot.data.length,
-            separatorBuilder: (_, i) => Divider(color: Colors.black),
-            itemBuilder: (_, i) {
-              Review review = snapshot.data.elementAt(i);
-              return FutureBuilder(
-                future: review.author.userName,
-                builder: (context, nameSnapshot) {
-                  return (nameSnapshot.hasData)
-                      ? PinListItem(
-                          name: nameSnapshot.data ?? "Unknown",
-                          date: review.timestamp,
-                          comment: review.body,
-                          id: review.id,
-                        )
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        );
+    return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        tooltip: "Write review",
+        child: Icon(Icons.create),
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          builder: (_) => Scaffold(
+            appBar: AppBar(actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.save),
+                onPressed: () {
+                  if (reviewFormKey.currentState.isValid) {
+                    Review review = reviewFormKey.currentState.getReview();
+                    widget.pin.addReview(review);
+                    Navigator.pop(context);
+                  }
                 },
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-}
+              )
+            ]),
+            body: NewReviewForm(key: reviewFormKey),
+          ),
+        ),
+      ),
+      body: StreamBuilder(
+          stream: Database.getReviewsForPin(widget.pin.id),
+          builder: (context, snapshot) {
+            Widget progressIndicator = Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            );
 
-class ReviewItem extends StatelessWidget {
-  final Review review;
+            Category category = widget.pin.category;
+            Widget categoryChip = Chip(
+              label: Text(category.text),
+              labelStyle: TextStyle(color: Colors.white),
+              backgroundColor: category.colour,
+            );
 
-  ReviewItem(this.review);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(8.0),
-      child: Text(review.body),
+            return CustomScrollView(
+              physics: BouncingScrollPhysics(),
+              slivers: <Widget>[
+                bar,
+                SliverToBoxAdapter(
+                  child: Row(children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text("Category:"),
+                    ),
+                    categoryChip,
+                  ]),
+                ),
+                snapshot.hasData
+                    ? SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, i) => PinListItem(snapshot.data[i]),
+                          childCount: snapshot.data.length,
+                        ),
+                      )
+                    : SliverFillRemaining(
+                        child: progressIndicator,
+                        hasScrollBody: false,
+                      ),
+                SliverFillRemaining(hasScrollBody: false),
+                SliverToBoxAdapter(
+                  child: Padding(padding: EdgeInsets.all(1.0)),
+                )
+              ],
+            );
+          }),
     );
   }
 }

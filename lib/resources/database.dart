@@ -1,24 +1,35 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/account.dart';
+import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:integrated_project/resources/tag.dart';
 import 'package:integrated_project/resources/visited.dart';
 
+class PinChange {
+  DocumentChangeType type;
+  Pin pin;
+
+  PinChange(this.type, this.pin);
+}
+
 class Database {
-  static Stream<List<Pin>> getPins(BuildContext context) {
+  static Stream<List<PinChange>> getPins(BuildContext context) {
     return Firestore.instance
         .collection("pins")
         .snapshots()
         .asyncMap((snapshot) async {
-      Completer<List<Pin>> pinsListCompleter = Completer<List<Pin>>();
-      List<Pin> pins = [];
-      for (DocumentSnapshot document in snapshot.documents) {
-        Review firstReview = await getFirstReview(document.documentID);
+      Completer<List<PinChange>> pinsListCompleter =
+          Completer<List<PinChange>>();
+      List<PinChange> pinChanges = [];
+      for (DocumentChange documentChange in snapshot.documentChanges) {
+        DocumentSnapshot document = documentChange.document;
         Pin pin = Pin(
           document.documentID,
           LatLng(
@@ -28,12 +39,15 @@ class Database {
           Account(document["author"]),
           document["name"],
           document["imageUrl"],
+          Category.find(document["category"]),
           context,
-          review: firstReview,
+          review: (documentChange.type == DocumentChangeType.added)
+              ? await getFirstReview(document.documentID)
+              : null,
         );
-        pins.add(pin);
+        pinChanges.add(PinChange(documentChange.type, pin));
       }
-      pinsListCompleter.complete(pins);
+      pinsListCompleter.complete(pinChanges);
       return pinsListCompleter.future;
     });
   }
@@ -47,6 +61,11 @@ class Database {
       List<Review> reviews = [];
       for (DocumentSnapshot document in snapshot.documents) {
         Review review = Review.fromMap(document.documentID, document.data);
+        document.reference.collection("tags").getDocuments().then((tagsSnapshot) {
+          for (DocumentSnapshot tag in tagsSnapshot.documents) {
+            review.tags.add(Tag.find(tag.data["name"]));
+          }
+        });
         reviews.add(review);
       }
       reviews.sort((firstReview, secondReview) =>
@@ -98,8 +117,15 @@ class Database {
     });
   }
 
-  static Future<Pin> newPin(LatLng location, String name, String reviewContent,
-      Account author, File image, BuildContext context) async {
+  static Future<Pin> newPin(
+    LatLng location,
+    String name,
+    Review review,
+    Account author,
+    File image,
+    Category category,
+    BuildContext context,
+  ) async {
     //Add the image to the database
     var timeKey = new DateTime.now();
     final StorageReference postImageRef =
@@ -110,17 +136,24 @@ class Database {
     print(imageUrl);
 
     //Add the pin to the database
-    DocumentReference newPin = await Firestore.instance
-        .collection("pins")
-        .add(Pin.newPinMap(name, location, author, imageUrl));
+    DocumentReference newPin =
+        await Firestore.instance.collection("pins").add(Pin.newPinMap(
+              name,
+              location,
+              author,
+              imageUrl,
+              category,
+            ));
 
     //Create map for initial review
     Map<String, dynamic> initialReviewMap =
-        Review.newReviewMap(author, reviewContent, newPin.documentID);
+        Review.newReviewMap(review, newPin.documentID);
 
     //Add the review to the database
     DocumentReference initialReview =
         await Firestore.instance.collection("reviews").add(initialReviewMap);
+
+    review.id = initialReview.documentID;
 
     return Pin(
       newPin.documentID,
@@ -128,14 +161,9 @@ class Database {
       author,
       name,
       imageUrl,
+      category,
       context,
-      review: Review(
-        initialReview.documentID,
-        author,
-        reviewContent,
-        initialReviewMap["dateAdded"].toDate(),
-        0,
-      ),
+      review: review,
     );
   }
 
@@ -206,7 +234,14 @@ class Database {
   ///Adds the specified review to the database. The review should already have
   ///its pinID attribute set.
   static void addReview(Review review) {
-    Firestore.instance.collection("reviews").add(review.asMap());
+    Firestore.instance
+        .collection("reviews")
+        .add(review.asMap())
+        .then((DocumentReference reviewReference) {
+          for (Tag tag in review.tags) {
+            reviewReference.collection("tags").add(tag.asMap());
+          }
+    });
   }
 
   static void addUserToDatabase(Account user) {
