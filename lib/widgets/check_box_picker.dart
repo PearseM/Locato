@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:integrated_project/resources/option.dart';
+import 'package:integrated_project/resources/tag.dart';
 
 class CheckBoxPicker extends FormField<Set<Option>> {
   final List<Option> options;
 
-  CheckBoxPicker({Key key, this.options, validator})
+  CheckBoxPicker({Key key, this.options, validator, void Function(Set<Option>) onSaved})
       : super(
           key: key,
           validator: validator,
           initialValue: Set<Option>(),
+          onSaved: onSaved,
           builder: (state) => Column(children: <Widget>[
             Wrap(
               alignment: WrapAlignment.center,

@@ -93,7 +93,7 @@ class _PinInfoDrawerState extends State<PinInfoDrawer> {
         copyURLButton(context),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(widget.pin.name),
+        title: Text(widget.pin.name, overflow: TextOverflow.ellipsis,),
         background: Stack(
           fit: StackFit.expand,
           children: <Widget>[

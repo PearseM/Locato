@@ -11,4 +11,12 @@ class Tag extends Option {
         Tag("Wildlife", Colors.green),
         Tag("Long exposure", Colors.orange),
       ];
+
+  Map<String, String> asMap() {
+    return {"name": this.text};
+  }
+
+  static Tag find(String text) => Tag.all().firstWhere(
+        (test) => test.text == text,
+  );
 }

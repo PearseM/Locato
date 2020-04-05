@@ -8,6 +8,7 @@ import 'package:integrated_project/resources/category.dart';
 import 'package:integrated_project/resources/pin.dart';
 import 'package:integrated_project/resources/review.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:integrated_project/resources/tag.dart';
 import 'package:integrated_project/resources/visited.dart';
 
 class PinChange {
@@ -23,7 +24,8 @@ class Database {
         .collection("pins")
         .snapshots()
         .asyncMap((snapshot) async {
-      Completer<List<PinChange>> pinsListCompleter = Completer<List<PinChange>>();
+      Completer<List<PinChange>> pinsListCompleter =
+          Completer<List<PinChange>>();
       List<PinChange> pinChanges = [];
       for (DocumentChange documentChange in snapshot.documentChanges) {
         DocumentSnapshot document = documentChange.document;
@@ -58,6 +60,11 @@ class Database {
       List<Review> reviews = [];
       for (DocumentSnapshot document in snapshot.documents) {
         Review review = Review.fromMap(document.documentID, document.data);
+        document.reference.collection("tags").getDocuments().then((tagsSnapshot) {
+          for (DocumentSnapshot tag in tagsSnapshot.documents) {
+            review.tags.add(Tag.find(tag.data["name"]));
+          }
+        });
         reviews.add(review);
       }
       reviews.sort((firstReview, secondReview) =>
@@ -226,7 +233,14 @@ class Database {
   ///Adds the specified review to the database. The review should already have
   ///its pinID attribute set.
   static void addReview(Review review) {
-    Firestore.instance.collection("reviews").add(review.asMap());
+    Firestore.instance
+        .collection("reviews")
+        .add(review.asMap())
+        .then((DocumentReference reviewReference) {
+          for (Tag tag in review.tags) {
+            reviewReference.collection("tags").add(tag.asMap());
+          }
+    });
   }
 
   static void addUserToDatabase(Account user) {

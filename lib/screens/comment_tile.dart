@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:integrated_project/resources/database.dart';
 import 'package:integrated_project/resources/review.dart';
+import 'package:integrated_project/resources/tag.dart';
 import 'package:integrated_project/screens/map.dart';
 
 class YourReviewsListItem extends ListTile {
@@ -100,45 +101,73 @@ class _PinListItemState extends State<PinListItem> {
           context: context,
           builder: (context) => ReviewInfoDialog(widget.review),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Column(
           children: <Widget>[
-            Expanded(
-              flex: 3,
-              child: PinCustomListItem(widget.review),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: PinCustomListItem(widget.review),
+                ),
+                Spacer(),
+                IconButton(
+                    icon: Icon(
+                      isFlagged ? Icons.flag : Icons.outlined_flag,
+                      semanticLabel: "Flagged",
+                    ),
+                    onPressed: () {
+                      if (isFlagged) {
+                        Database.unFlag(widget.review.id);
+                      } else {
+                        Database.flag(widget.review.id);
+                      }
+                      setState(() {
+                        isFlagged = !isFlagged;
+                      });
+                    }),
+                IconButton(
+                    icon: Icon(
+                      isFavourite ? Icons.star : Icons.star_border,
+                      semanticLabel: "Favourite",
+                    ),
+                    onPressed: () {
+                      if (isFavourite) {
+                        Database.removeFavourite(widget.review.id);
+                      } else {
+                        Database.addFavourite(widget.review.id);
+                      }
+                      setState(() {
+                        isFavourite = !isFavourite;
+                      });
+                    })
+              ],
             ),
-            Spacer(),
-            IconButton(
-                icon: Icon(
-                  isFlagged ? Icons.flag : Icons.outlined_flag,
-                  semanticLabel: "Flagged",
-                ),
-                onPressed: () {
-                  if (isFlagged) {
-                    Database.unFlag(widget.review.id);
-                  } else {
-                    Database.flag(widget.review.id);
-                  }
-                  setState(() {
-                    isFlagged = !isFlagged;
-                  });
-                }),
-            IconButton(
-                icon: Icon(
-                  isFavourite ? Icons.star : Icons.star_border,
-                  semanticLabel: "Favourite",
-                ),
-                onPressed: () {
-                  if (isFavourite) {
-                    Database.removeFavourite(widget.review.id);
-                  } else {
-                    Database.addFavourite(widget.review.id);
-                  }
-                  setState(() {
-                    isFavourite = !isFavourite;
-                  });
-                })
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: () {
+                      List<Widget> row = [];
+                      for (Tag tag in widget.review.tags) {
+                        row.add(Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Chip(
+                            label: Text(tag.text),
+                            labelStyle: TextStyle(color: Colors.white),
+                            backgroundColor: tag.colour,
+                          ),
+                        ));
+                      }
+                      return row;
+                    }(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -396,11 +425,20 @@ class ReviewInfoDialog extends StatelessWidget {
                             style: Theme.of(context).textTheme.subhead,
                           ),
                           Row(
-                            children: <Widget>[
-                              Chip(
-                                label: Text("Slow-shutter"), //TODO Get tag from review
-                              ),
-                            ],
+                            children: () {
+                              List<Widget> chips = [];
+                              for (Tag tag in _review.tags) {
+                                chips.add(Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Chip(
+                                    label: Text(tag.text),
+                                    labelStyle: TextStyle(color: Colors.white),
+                                    backgroundColor: tag.colour,
+                                  ),
+                                ));
+                              }
+                              return chips;
+                            }(),
                           ),
                         ],
                       ),
@@ -433,7 +471,11 @@ class ReviewInfoDialog extends StatelessWidget {
                                   ),
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Icon(Icons.check),
+                                    child: (_review.tripod == null)
+                                        ? Text("-")
+                                        : Icon(((_review.tripod)
+                                            ? Icons.check
+                                            : Icons.clear)),
                                   ),
                                   Container(
                                     alignment: Alignment.centerLeft,
@@ -441,7 +483,7 @@ class ReviewInfoDialog extends StatelessWidget {
                                   ),
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Text("900"),
+                                    child: Text(_review.iso ?? "-"),
                                   ),
                                   Container(
                                     alignment: Alignment.centerLeft,
@@ -449,15 +491,15 @@ class ReviewInfoDialog extends StatelessWidget {
                                   ),
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Text("1/200"),
+                                    child: Text(_review.shutterSpeed ?? "-"),
                                   ),
                                   Container(
                                     alignment: Alignment.centerLeft,
-                                    child: Text("Aperature"),
+                                    child: Text("Aperture"),
                                   ),
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Text("f2.6"),
+                                    child: Text("f/" + _review.aperture ?? "-"),
                                   ),
                                 ],
                               ),
